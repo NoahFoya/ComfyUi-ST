@@ -27587,6 +27587,11 @@ function insertVariableToActiveTemplateInput() {
   toastr.success(`已插入变量 ${varText}`);
 }
 
+function getCharacterSettingsRoot() {
+  const root = typeof extension_settings27 !== "undefined" ? extension_settings27 : (typeof extension_settings20 !== "undefined" ? extension_settings20 : (typeof extension_settings31 !== "undefined" ? extension_settings31 : extension_settings));
+  return root ? root[extensionName] : null;
+}
+
 function ensureInjectionTemplatesInit(settings3) {
   const targetSettings = settings3 || getCharacterSettingsRoot();
   if (!targetSettings) return;
@@ -27648,6 +27653,7 @@ function setupInjectionTemplatesControls(container) {
 
 function loadInjectionTemplatesPresetList() {
   const settings3 = getCharacterSettingsRoot();
+  if (!settings3) return;
   ensureInjectionTemplatesInit(settings3);
   const select = document.getElementById("injection_template_preset_id");
   if (!select) return;
@@ -27663,6 +27669,7 @@ function loadInjectionTemplatesPresetList() {
 
 function loadInjectionTemplatesPreset() {
   const settings3 = getCharacterSettingsRoot();
+  if (!settings3) return;
   ensureInjectionTemplatesInit(settings3);
   const select = document.getElementById("injection_template_preset_id");
   if (!select) return;
@@ -27681,11 +27688,12 @@ function loadInjectionTemplatesPreset() {
   if (tCommon) tCommon.value = preset.commonCharacterListTemplate || defaults.commonCharacterListTemplate;
   if (tOutfit) tOutfit.value = preset.enableOutfitListTemplate || defaults.enableOutfitListTemplate;
 
-  saveSettingsDebounced();
+  saveSettingsDebounced19();
 }
 
 function saveCurrentInjectionTemplatesData(presetId) {
   const settings3 = getCharacterSettingsRoot();
+  if (!settings3) return;
   ensureInjectionTemplatesInit(settings3);
   const targetId = typeof presetId === "string" ? presetId : (settings3.injectionTemplates.currentPresetId || "默认方案");
 
@@ -27704,7 +27712,7 @@ function saveCurrentInjectionTemplatesData(presetId) {
     enableOutfitListTemplate: tOutfit
   };
 
-  saveSettingsDebounced();
+  saveSettingsDebounced19();
 }
 
 function updateInjectionTemplatesPreset() {
