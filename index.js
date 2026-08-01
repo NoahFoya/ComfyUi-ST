@@ -27478,12 +27478,49 @@ function checkCharacterCommonList() {
   if (!textarea || !resultDiv || !contentDiv) return;
   const inputCharacters = textarea.value.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
   if (inputCharacters.length === 0) {
-    alert("\u8BF7\u5148\u8F93\u5165\u89D2\u8272\u540D\u79F0");
+    alert("请先输入角色名称");
     return;
   }
+  const availableCharacters = new Set();
   for (const presetName in settings3.characterPresets) {
     availableCharacters.add(presetName);
   }
+  const results = {
+    found: [],
+    notFound: []
+  };
+  inputCharacters.forEach((char) => {
+    if (availableCharacters.has(char)) {
+      results.found.push(char);
+    } else {
+      results.notFound.push(char);
+    }
+  });
+  let html = '<div style="margin-bottom: 10px;">';
+  html += `<strong>总计：</strong>${inputCharacters.length} 个角色`;
+  html += `<br><strong>找到：</strong>${results.found.length} 个`;
+  html += `<br><strong>未找到：</strong>${results.notFound.length} 个`;
+  html += "</div>";
+  if (results.found.length > 0) {
+    html += '<div style="margin-bottom: 10px;">';
+    html += '<strong style="color: #28a745;">✓ 已存在的角色：</strong>';
+    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+    results.found.forEach((char) => {
+      html += `<li>${char}</li>`;
+    });
+    html += "</ul></div>";
+  }
+  if (results.notFound.length > 0) {
+    html += "<div>";
+    html += '<strong style="color: #dc3545;">✕ 未找到的角色：</strong>';
+    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+    results.notFound.forEach((char) => {
+      html += `<li>${char}</li>`;
+    });
+    html += "</ul></div>";
+  }
+  contentDiv.innerHTML = html;
+  resultDiv.style.display = "block";
 }
 
 function getSystemDefaultInjectionTemplates() {
