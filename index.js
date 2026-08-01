@@ -28075,6 +28075,7 @@ function getCharacterPromptData(character, settingsObj) {
     fullNSFWBack: character.fullBodyNSFWBack || "",
     lowerNSFW: character.fullBodyNSFW || character.lowerBodyNSFW || "",
     lowerNSFWBack: character.fullBodyNSFWBack || character.lowerBodyNSFWBack || "",
+    negative: character.negative || "",
     outfit: outfitsJoined,
     outfits: outfitsJoined
   };
@@ -28111,35 +28112,52 @@ function getOutfitPromptData(outfit) {
   };
 }
 
-const QUICK_INJECTION_TEMPLATES = {
-  default_native: {
-    characterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}\n{outfit}`,
-    innerOutfitTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
-    commonCharacterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
-    enableOutfitListTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`
+const SYSTEM_PRESET_IDS = ["默认方案", "Tavern XML 格式", "Markdown 极简卡片"];
+
+const SYSTEM_INJECTION_TEMPLATES = {
+  "默认方案": {
+    characterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n服装列表：\n{outfits}`,
+    innerOutfitTemplate: `  中文名称：{nameCN}\n  英文名称：{nameEN}\n  上半身（正面）：{upperBody}\n  上半身（背面）：{upperBodyBack}\n  下半身（正面）：{fullBody}\n  下半身（背面）：{fullBodyBack}`,
+    commonCharacterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}`,
+    enableOutfitListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n上半身（正面）：{upperBody}\n上半身（背面）：{upperBodyBack}\n下半身（正面）：{fullBody}\n下半身（背面）：{fullBodyBack}`
   },
-  tavern_xml: {
-    characterListTemplate: `<character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>{facial} {facialBack}</appearance>\n  <clothing>{upperSFW}, {fullSFW}</clothing>\n  <outfits>\n{outfit}\n  </outfits>\n</character>`,
-    innerOutfitTemplate: `  <outfit name="{outfitName}">\n    <upper>{upperBody}</upper>\n    <lower>{fullBody}</lower>\n  </outfit>`,
-    commonCharacterListTemplate: `<common_character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>{facial}</appearance>\n  <clothing>{upperSFW}, {fullSFW}</clothing>\n</common_character>`,
-    enableOutfitListTemplate: `<common_outfit name="{outfitName}">\n  <upper>{upperBody}</upper>\n  <lower>{fullBody}</lower>\n</common_outfit>`
+  "Tavern XML 格式": {
+    characterListTemplate: `<character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>Front: {facial} | Back: {facialBack}</appearance>\n  <body_sfw>Upper: {upperSFW} ({upperSFWBack}) | Lower: {lowerSFW} ({lowerSFWBack})</body_sfw>\n  <body_nsfw>Upper: {upperNSFW} ({upperNSFWBack}) | Lower: {lowerNSFW} ({lowerNSFWBack})</body_nsfw>\n  <outfits>\n{outfits}\n  </outfits>\n</character>`,
+    innerOutfitTemplate: `  <outfit name="{nameCN}" english_name="{nameEN}">\n    <upper>Front: {upperBody} | Back: {upperBodyBack}</upper>\n    <lower>Front: {fullBody} | Back: {fullBodyBack}</lower>\n  </outfit>`,
+    commonCharacterListTemplate: `<common_character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>Front: {facial} | Back: {facialBack}</appearance>\n  <body_sfw>Upper: {upperSFW} | Lower: {lowerSFW}</body_sfw>\n</common_character>`,
+    enableOutfitListTemplate: `<common_outfit name="{nameCN}" english_name="{nameEN}">\n  <upper>Front: {upperBody} | Back: {upperBodyBack}</upper>\n  <lower>Front: {fullBody} | Back: {fullBodyBack}</lower>\n</common_outfit>`
+  },
+  "Markdown 极简卡片": {
+    characterListTemplate: `### 角色：{nameCN} ({nameEN})\n- **特征**: {traits}\n- **面部**: {facial} (背面: {facialBack})\n- **体型SFW**: 上身({upperSFW} / {upperSFWBack}), 下身({lowerSFW} / {lowerSFWBack})\n- **解剖NSFW**: 上身({upperNSFW} / {upperNSFWBack}), 下身({lowerNSFW} / {lowerNSFWBack})\n- **服装**:\n{outfits}`,
+    innerOutfitTemplate: `  * 服装：{nameCN} ({nameEN}) -> 上身: {upperBody} ({upperBodyBack}) | 下身: {fullBody} ({fullBodyBack})`,
+    commonCharacterListTemplate: `### 通用角色：{nameCN} ({nameEN})\n- **特征**: {traits}\n- **面部**: {facial}\n- **体型**: {upperSFW}, {lowerSFW}`,
+    enableOutfitListTemplate: `### 通用服装：{nameCN} ({nameEN})\n- **上身**: {upperBody} ({upperBodyBack})\n- **下身**: {fullBody} ({fullBodyBack})`
   }
 };
 
 function getSystemDefaultInjectionTemplates() {
-  return QUICK_INJECTION_TEMPLATES.default_native;
+  return SYSTEM_INJECTION_TEMPLATES["默认方案"];
 }
 
 function ensureInjectionTemplatesInit(settingsObj) {
   const target = settingsObj || getCharacterSettingsRoot();
   if (!target) return;
-  if (!target.injectionTemplates || !target.injectionTemplates.presets) {
+  if (!target.injectionTemplates) {
     target.injectionTemplates = {
-      presets: {
-        "默认方案": getSystemDefaultInjectionTemplates()
-      },
+      presets: {},
       currentPresetId: "默认方案"
     };
+  }
+  if (!target.injectionTemplates.presets) {
+    target.injectionTemplates.presets = {};
+  }
+  for (const [id, sysTpl] of Object.entries(SYSTEM_INJECTION_TEMPLATES)) {
+    if (!target.injectionTemplates.presets[id]) {
+      target.injectionTemplates.presets[id] = { ...sysTpl };
+    }
+  }
+  if (!target.injectionTemplates.currentPresetId || !target.injectionTemplates.presets[target.injectionTemplates.currentPresetId]) {
+    target.injectionTemplates.currentPresetId = "默认方案";
   }
 }
 
@@ -28341,43 +28359,53 @@ function setupInjectionTemplateControls(container) {
     }
   });
 
+  let $lastActiveTextarea = container.find("#tpl_characterListTemplate");
+
+  container.find("#tpl_characterListTemplate, #tpl_innerOutfitTemplate, #tpl_commonCharacterListTemplate, #tpl_enableOutfitListTemplate")
+    .off("focus click").on("focus click", function () {
+      $lastActiveTextarea = $(this);
+    });
+
+  container.find("#injection_template_insert_var_btn").off("click").on("click", function (e) {
+    e.preventDefault();
+    const varTag = container.find("#injection_template_var_select").val();
+    if (!varTag) {
+      if (typeof toastr !== "undefined") toastr.warning("请先选择要插入的占位符变量！");
+      return;
+    }
+
+    if (!$lastActiveTextarea || $lastActiveTextarea.length === 0) {
+      $lastActiveTextarea = container.find("#tpl_characterListTemplate");
+    }
+
+    const el = $lastActiveTextarea[0];
+    if (!el) return;
+
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const val = $lastActiveTextarea.val() || "";
+
+    const newVal = val.substring(0, start) + varTag + val.substring(end);
+    $lastActiveTextarea.val(newVal);
+
+    el.focus();
+    el.selectionStart = el.selectionEnd = start + varTag.length;
+
+    $lastActiveTextarea.trigger("input");
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(varTag).catch(() => {});
+    }
+
+    if (typeof toastr !== "undefined") {
+      toastr.info(`已插入变量 ${varTag}`);
+    }
+  });
+
   container.find("#injection_template_refresh_preview").off("click").on("click", function () {
     renderInjectionTemplateLivePreview(container);
     if (typeof toastr !== "undefined") {
       toastr.success("全量实时预览已刷新！");
-    }
-  });
-
-  container.find("#injection_template_apply_quick").off("click").on("click", function () {
-    const quickKey = container.find("#injection_template_quick_preset").val();
-    const quickTpls = QUICK_INJECTION_TEMPLATES[quickKey];
-    if (!quickTpls) {
-      if (typeof toastr !== "undefined") toastr.error("未找到对应的快捷模板方案！");
-      return;
-    }
-
-    container.find("#tpl_characterListTemplate").val(quickTpls.characterListTemplate || "");
-    container.find("#tpl_innerOutfitTemplate").val(quickTpls.innerOutfitTemplate || "");
-    container.find("#tpl_commonCharacterListTemplate").val(quickTpls.commonCharacterListTemplate || "");
-    container.find("#tpl_enableOutfitListTemplate").val(quickTpls.enableOutfitListTemplate || "");
-
-    renderInjectionTemplateLivePreview(container);
-
-    const targetSettings = getCharacterSettingsRoot();
-    if (targetSettings) {
-      ensureInjectionTemplatesInit(targetSettings);
-      const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
-      targetSettings.injectionTemplates.presets[currentId] = {
-        characterListTemplate: container.find("#tpl_characterListTemplate").val(),
-        innerOutfitTemplate: container.find("#tpl_innerOutfitTemplate").val(),
-        commonCharacterListTemplate: container.find("#tpl_commonCharacterListTemplate").val(),
-        enableOutfitListTemplate: container.find("#tpl_enableOutfitListTemplate").val()
-      };
-      saveSettingsDebounced();
-    }
-
-    if (typeof toastr !== "undefined") {
-      toastr.success("已载入快捷模板并自动同步至当前方案！");
     }
   });
 
@@ -28458,14 +28486,19 @@ function setupInjectionTemplateControls(container) {
     ensureInjectionTemplatesInit(targetSettings);
 
     const oldId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
-    if (oldId === "默认方案") {
-      toastr.warning("默认方案不可重命名！");
+    if (SYSTEM_PRESET_IDS.includes(oldId)) {
+      toastr.warning(`系统预置方案 "${oldId}" 不可重命名！`);
       return;
     }
 
     const newName = await callGenericPopup(`重命名方案 "${oldId}" 为：`, POPUP_TYPE.INPUT, oldId);
     if (!newName || !newName.trim() || newName.trim() === oldId) return;
     const newId = newName.trim();
+
+    if (targetSettings.injectionTemplates.presets[newId]) {
+      toastr.error(`方案 "${newId}" 已存在！`);
+      return;
+    }
 
     targetSettings.injectionTemplates.presets[newId] = targetSettings.injectionTemplates.presets[oldId];
     delete targetSettings.injectionTemplates.presets[oldId];
@@ -28476,17 +28509,19 @@ function setupInjectionTemplateControls(container) {
   });
 
   container.find("#injection_template_reset").off("click").on("click", async function () {
-    const confirm = await callGenericPopup("确定将当前方案恢复为系统默认模板吗？", POPUP_TYPE.CONFIRM);
-    if (!confirm) return;
     const targetSettings = getCharacterSettingsRoot();
     if (!targetSettings) return;
     ensureInjectionTemplatesInit(targetSettings);
 
     const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
-    targetSettings.injectionTemplates.presets[currentId] = getSystemDefaultInjectionTemplates();
+    const confirmReset = await callGenericPopup(`确定将方案 "${currentId}" 恢复为默认初始内容吗？`, POPUP_TYPE.CONFIRM);
+    if (!confirmReset) return;
+
+    const defaultContent = SYSTEM_INJECTION_TEMPLATES[currentId] || getSystemDefaultInjectionTemplates();
+    targetSettings.injectionTemplates.presets[currentId] = { ...defaultContent };
     saveSettingsDebounced();
     updateInjectionTemplateUI(container);
-    toastr.success(`方案 "${currentId}" 已重置为系统默认！`);
+    toastr.success(`方案 "${currentId}" 已重置为默认内容！`);
   });
 
   container.find("#injection_template_delete").off("click").on("click", async function () {
@@ -28495,19 +28530,19 @@ function setupInjectionTemplateControls(container) {
     ensureInjectionTemplatesInit(targetSettings);
 
     const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
-    if (currentId === "默认方案") {
-      toastr.warning("默认方案不可删除！");
+    if (SYSTEM_PRESET_IDS.includes(currentId)) {
+      toastr.warning(`系统预置方案 "${currentId}" 不可删除！`);
       return;
     }
 
-    const confirm = await callGenericPopup(`确定删除方案 "${currentId}" 吗？`, POPUP_TYPE.CONFIRM);
-    if (!confirm) return;
+    const confirmDelete = await callGenericPopup(`确定删除自定义方案 "${currentId}" 吗？`, POPUP_TYPE.CONFIRM);
+    if (!confirmDelete) return;
 
     delete targetSettings.injectionTemplates.presets[currentId];
     targetSettings.injectionTemplates.currentPresetId = "默认方案";
     saveSettingsDebounced();
     updateInjectionTemplateUI(container);
-    toastr.success(`方案 "${currentId}" 已删除！`);
+    toastr.success(`方案 "${currentId}" 已成功删除！`);
   });
 }
 
