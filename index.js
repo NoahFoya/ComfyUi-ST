@@ -22198,104 +22198,57 @@ function generateCharacterListText(triggerText = null) {
       continue;
     }
 
-    let outfitText = "";
-    if (Array.isArray(character.outfits) && character.outfits.length > 0) {
-      const outfitTexts = [];
-      for (const outfitId of character.outfits) {
-        const outfit = settings3.outfitPresets?.[outfitId];
-        if (!outfit) continue;
-        if (outfit.nameCN) {
-          outfitDetails.push(`
-  \u4E2D\u6587\u540D\u79F0\uFF1A${outfit.nameCN}`);
-        }
-        if (outfit.nameEN) {
-          const displayName = outfit.nameEN.split("|")[0].trim();
-          outfitDetails.push(`  \u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-        }
-        if (outfit.upperBody) {
-          outfitDetails.push(`  \u4E0A\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.upperBody}`);
-        }
-        if (outfit.upperBodyBack) {
-          outfitDetails.push(`  \u4E0A\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.upperBodyBack}`);
-        }
-        if (outfit.fullBody) {
-          outfitDetails.push(`  \u4E0B\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.fullBody}`);
-        }
-        if (outfit.fullBodyBack) {
-          outfitDetails.push(`  \u4E0B\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.fullBodyBack}`);
-        }
-        if (outfitDetails.length > 0) {
-          charInfo.push(outfitDetails.join("\n"));
-        }
-      }
-    }
-    if (charInfo.length > 0) {
-      characterList.push(charInfo.join("\n"));
+    const charData = getCharacterPromptData(character, settings3);
+    const renderedChar = applyInjectionTemplate(activeTemplates.characterListTemplate, charData);
+    if (renderedChar) {
+      characterList.push(renderedChar);
     }
   }
-  return characterList.length > 0 ? characterList.join("\n\n") : "\uFF08\u6682\u65E0\u88AB\u89E6\u53D1\u7684\u89D2\u8272\uFF09";
+
+  return characterList.length > 0 ? characterList.join("\n\n") : "（暂无被触发的角色）";
 }
+
 function generateOutfitEnableListText() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const enablePresetId = settings3.outfitEnablePresetId;
   const enablePreset = settings3.outfitEnablePresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.outfits) || enablePreset.outfits.length === 0) {
     return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u670D\u88C5";
   }
+
+  const activeTemplates = getActiveInjectionTemplates(settings3);
   const outfitList = [];
+
   for (const outfitId of enablePreset.outfits) {
     const outfit = settings3.outfitPresets?.[outfitId];
     if (!outfit) continue;
-    const outfitInfo = [];
-    if (outfit.nameCN) {
-      outfitInfo.push(`\u4E2D\u6587\u540D\u79F0\uFF1A${outfit.nameCN}`);
-    }
-    if (outfit.nameEN) {
-      const displayName = outfit.nameEN.split("|")[0].trim();
-      outfitInfo.push(`\u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-    }
-    if (outfit.upperBody) {
-      outfitInfo.push(`\u4E0A\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.upperBody}`);
-    }
-    if (outfit.upperBodyBack) {
-      outfitInfo.push(`\u4E0A\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.upperBodyBack}`);
-    }
-    if (outfit.fullBody) {
-      outfitInfo.push(`\u4E0B\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.fullBody}`);
-    }
-    if (outfit.fullBodyBack) {
-      outfitInfo.push(`\u4E0B\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.fullBodyBack}`);
-    }
-    if (outfitInfo.length > 0) {
-      outfitList.push(outfitInfo.join("\n"));
+
+    const outfitData = getOutfitPromptData(outfit);
+    const renderedOutfit = applyInjectionTemplate(activeTemplates.enableOutfitListTemplate, outfitData);
+    if (renderedOutfit) {
+      outfitList.push(renderedOutfit);
     }
   }
+
   return outfitList.join("\n\n");
 }
 function generateCommonCharacterListText() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const enablePresetId = settings3.characterCommonPresetId;
   const enablePreset = settings3.characterCommonPresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.characters) || enablePreset.characters.length === 0) {
     return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u89D2\u8272";
   }
+  const activeTemplates = getActiveInjectionTemplates(settings3);
   const characterList = [];
   for (const charId of enablePreset.characters) {
     const character = settings3.characterPresets?.[charId];
     if (!character) continue;
-    const charInfo = [];
-    if (character.nameCN) {
-      charInfo.push(character.nameCN);
-    }
-    if (character.nameEN) {
-      const displayName = character.nameEN.split("|")[0].trim();
-      charInfo.push(displayName);
-    }
-    if (charInfo.length > 0) {
-      characterList.push(charInfo.join(" "));
-    }
+    const charData = getCharacterPromptData(character, settings3);
+    const renderedChar = applyInjectionTemplate(activeTemplates.commonCharacterListTemplate, charData);
+    if (renderedChar) characterList.push(renderedChar);
   }
-  return characterList.join("\n");
+  return characterList.join("\n\n");
 }
 async function getEnabledCharacterImages(triggerText = null) {
   const { getConfigImage: getConfigImage2 } = await Promise.resolve().then(() => (init_configDatabase(), configDatabase_exports));
@@ -28081,13 +28034,100 @@ function getCharacterSettingsRoot() {
   return null;
 }
 
-function getSystemDefaultInjectionTemplates() {
+function getCharacterPromptData(character, settingsObj) {
+  if (!character) return {};
+  const settings = settingsObj || getCharacterSettingsRoot();
+
+  let outfitsJoined = "";
+  if (Array.isArray(character.outfits) && character.outfits.length > 0) {
+    const activeTpls = getActiveInjectionTemplates(settings);
+    const outfitLines = [];
+    for (const outfitId of character.outfits) {
+      const outfit = settings?.outfitPresets?.[outfitId];
+      if (!outfit) continue;
+      const outfitData = getOutfitPromptData(outfit);
+      const renderedOutfit = applyInjectionTemplate(activeTpls.innerOutfitTemplate, outfitData);
+      if (renderedOutfit) {
+        outfitLines.push(renderedOutfit);
+      }
+    }
+    outfitsJoined = outfitLines.join("\n");
+  }
+
+  const nameCN = character.nameCN || "";
+  const nameEN = character.nameEN ? character.nameEN.split("|")[0].trim() : "";
+
   return {
+    nameCN,
+    nameEN,
+    traits: character.characterTraits || "",
+    facial: character.facialFeatures || "",
+    facialBack: character.facialFeaturesBack || "",
+    upperSFW: character.upperBodySFW || "",
+    upperSFWBack: character.upperBodySFWBack || "",
+    fullSFW: character.fullBodySFW || "",
+    fullSFWBack: character.fullBodySFWBack || "",
+    lowerSFW: character.fullBodySFW || character.lowerBodySFW || "",
+    lowerSFWBack: character.fullBodySFWBack || character.lowerBodySFWBack || "",
+    upperNSFW: character.upperBodyNSFW || "",
+    upperNSFWBack: character.upperBodyNSFWBack || "",
+    fullNSFW: character.fullBodyNSFW || "",
+    fullNSFWBack: character.fullBodyNSFWBack || "",
+    lowerNSFW: character.fullBodyNSFW || character.lowerBodyNSFW || "",
+    lowerNSFWBack: character.fullBodyNSFWBack || character.lowerBodyNSFWBack || "",
+    outfit: outfitsJoined,
+    outfits: outfitsJoined
+  };
+}
+
+function getOutfitPromptData(outfit) {
+  if (!outfit) return {};
+  const nameCN = outfit.nameCN || "";
+  const nameEN = outfit.nameEN ? outfit.nameEN.split("|")[0].trim() : "";
+  const outfitName = nameCN || nameEN || "未知服装";
+
+  return {
+    nameCN,
+    nameEN,
+    outfitName,
+    upperBody: outfit.upperBody || outfit.upperBodySFW || "",
+    upperBodyBack: outfit.upperBodyBack || outfit.upperBodySFWBack || "",
+    fullBody: outfit.fullBody || outfit.fullBodySFW || "",
+    fullBodyBack: outfit.fullBodyBack || outfit.fullBodySFWBack || "",
+    lowerBody: outfit.fullBody || outfit.fullBodySFW || outfit.lowerBody || "",
+    lowerBodyBack: outfit.fullBodyBack || outfit.fullBodySFWBack || outfit.lowerBodyBack || "",
+    upperSFW: outfit.upperBody || outfit.upperBodySFW || "",
+    upperSFWBack: outfit.upperBodyBack || outfit.upperBodySFWBack || "",
+    fullSFW: outfit.fullBody || outfit.fullBodySFW || "",
+    fullSFWBack: outfit.fullBodyBack || outfit.fullBodySFWBack || "",
+    lowerSFW: outfit.fullBody || outfit.fullBodySFW || outfit.lowerSFW || "",
+    lowerSFWBack: outfit.fullBodyBack || outfit.fullBodySFWBack || outfit.lowerSFWBack || "",
+    upperNSFW: outfit.upperBodyNSFW || "",
+    upperNSFWBack: outfit.upperBodyNSFWBack || "",
+    fullNSFW: outfit.fullBodyNSFW || "",
+    fullNSFWBack: outfit.fullBodyNSFWBack || "",
+    lowerNSFW: outfit.fullBodyNSFW || outfit.lowerNSFW || "",
+    lowerNSFWBack: outfit.fullBodyNSFWBack || outfit.lowerNSFWBack || ""
+  };
+}
+
+const QUICK_INJECTION_TEMPLATES = {
+  default_native: {
     characterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}\n{outfit}`,
     innerOutfitTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
     commonCharacterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
     enableOutfitListTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`
-  };
+  },
+  tavern_xml: {
+    characterListTemplate: `<character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>{facial} {facialBack}</appearance>\n  <clothing>{upperSFW}, {fullSFW}</clothing>\n  <outfits>\n{outfit}\n  </outfits>\n</character>`,
+    innerOutfitTemplate: `  <outfit name="{outfitName}">\n    <upper>{upperBody}</upper>\n    <lower>{fullBody}</lower>\n  </outfit>`,
+    commonCharacterListTemplate: `<common_character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>{facial}</appearance>\n  <clothing>{upperSFW}, {fullSFW}</clothing>\n</common_character>`,
+    enableOutfitListTemplate: `<common_outfit name="{outfitName}">\n  <upper>{upperBody}</upper>\n  <lower>{fullBody}</lower>\n</common_outfit>`
+  }
+};
+
+function getSystemDefaultInjectionTemplates() {
+  return QUICK_INJECTION_TEMPLATES.default_native;
 }
 
 function ensureInjectionTemplatesInit(settingsObj) {
@@ -28122,8 +28162,9 @@ function applyInjectionTemplate(templateStr, dataMap) {
 
   let replaced = templateStr;
   for (const [key, val] of Object.entries(dataMap || {})) {
-    const regex = new RegExp(`\\{${key}\\}`, "g");
-    replaced = replaced.replace(regex, val != null ? String(val) : "");
+    const valStr = val != null ? String(val) : "";
+    const regex = new RegExp(`\\{\\{?${key}\\}?\\}`, "g");
+    replaced = replaced.replace(regex, valStr);
   }
 
   const lines = replaced.split(/\r?\n/);
@@ -28134,7 +28175,7 @@ function applyInjectionTemplate(templateStr, dataMap) {
     const trimmedLine = rawLine.trim();
 
     const rawTemplateLine = (templateStr.split(/\r?\n/)[i] || "");
-    const hadPlaceholder = /\{[a-zA-Z0-9_]+\}/.test(rawTemplateLine);
+    const hadPlaceholder = /\{\{?[a-zA-Z0-9_]+\}?\}/.test(rawTemplateLine);
 
     if (hadPlaceholder) {
       const textOnly = trimmedLine.replace(/[\s:：,，\-–—]/g, "");
@@ -28151,27 +28192,95 @@ function applyInjectionTemplate(templateStr, dataMap) {
 }
 
 function renderInjectionTemplateLivePreview(container) {
-  const sampleData = {
-    nameCN: "示例角色",
-    nameEN: "SampleChar",
-    traits: "1girl, solo, masterpiece",
-    facial: "blue eyes, long blonde hair",
-    facialBack: "",
-    upperSFW: "white shirt",
-    upperSFWBack: "",
-    fullSFW: "blue skirt",
-    fullSFWBack: "",
-    upperNSFW: "",
-    upperNSFWBack: "",
-    fullNSFW: "",
-    fullNSFWBack: "",
-    outfit: "水手服 (SFW: white shirt, blue skirt)",
-    outfitName: "示例服装"
-  };
-
   const charTpl = container.find("#tpl_characterListTemplate").val() || "";
-  const previewText = applyInjectionTemplate(charTpl, sampleData);
-  container.find("#tpl_live_preview").val(previewText);
+  const innerOutfitTpl = container.find("#tpl_innerOutfitTemplate").val() || "";
+  const commonCharTpl = container.find("#tpl_commonCharacterListTemplate").val() || "";
+  const enableOutfitTpl = container.find("#tpl_enableOutfitListTemplate").val() || "";
+
+  const sampleOutfit1 = getOutfitPromptData({
+    nameCN: "JK制服",
+    nameEN: "JK Uniform",
+    upperBody: "white collared shirt, red ribbon",
+    upperBodyBack: "sailor collar back",
+    fullBody: "pleated navy skirt",
+    fullBodyBack: "pleated skirt back",
+    lowerBody: "pleated navy skirt, white thighhighs",
+    lowerBodyBack: "skirt back hem"
+  });
+  const renderedInnerOutfit1 = applyInjectionTemplate(innerOutfitTpl, sampleOutfit1);
+
+  const sampleChar1 = {
+    nameCN: "爱丽丝",
+    nameEN: "Alice",
+    traits: "1girl, solo, masterpiece, blonde hair, blue eyes",
+    facial: "cute smile, delicate face",
+    facialBack: "long flowing blonde hair",
+    upperSFW: "pale skin, slender arms, collarbone",
+    upperSFWBack: "slender spine, shoulder blades",
+    fullSFW: "long legs, thigh gap",
+    fullSFWBack: "gluteal fold",
+    lowerSFW: "long legs, thigh gap",
+    lowerSFWBack: "gluteal fold",
+    upperNSFW: "small breasts, pink nipples",
+    upperNSFWBack: "waist dimples, smooth back",
+    fullNSFW: "shaved pussy",
+    fullNSFWBack: "plump butt",
+    lowerNSFW: "shaved pussy",
+    lowerNSFWBack: "plump butt",
+    outfit: renderedInnerOutfit1,
+    outfits: renderedInnerOutfit1
+  };
+  const renderedChar1 = applyInjectionTemplate(charTpl, sampleChar1);
+
+  const sampleChar2 = {
+    nameCN: "贝蒂",
+    nameEN: "Betty",
+    traits: "1girl, solo, silver hair, red eyes",
+    facial: "cool expression, twin braids",
+    facialBack: "twin braids back",
+    upperSFW: "fair skin, toned waist",
+    upperSFWBack: "back curvature",
+    fullSFW: "thick thighs",
+    fullSFWBack: "plump glutes",
+    lowerSFW: "thick thighs",
+    lowerSFWBack: "plump glutes"
+  };
+  const renderedChar2 = applyInjectionTemplate(charTpl, sampleChar2);
+
+  const sampleCommonChar1 = applyInjectionTemplate(commonCharTpl, {
+    nameCN: "路人A",
+    nameEN: "Passerby A",
+    traits: "1boy, short brown hair",
+    facial: "glasses",
+    facialBack: "neat short hair back",
+    upperSFW: "casual physique",
+    fullSFW: "straight legs",
+    lowerSFW: "straight legs"
+  });
+
+  const sampleCommonOutfit1 = applyInjectionTemplate(enableOutfitTpl, getOutfitPromptData({
+    nameCN: "运动服",
+    nameEN: "Tracksuit",
+    upperBody: "zipper jacket, athletic wear",
+    upperBodyBack: "sports logo on back",
+    fullBody: "track pants, sneakers",
+    fullBodyBack: "pants back seam",
+    lowerBody: "track pants, sneakers",
+    lowerBodyBack: "pants back seam"
+  }));
+
+  const previewSections = [];
+  previewSections.push("=== 【角色启用列表】 ===");
+  if (renderedChar1) previewSections.push(renderedChar1);
+  if (renderedChar2) previewSections.push(renderedChar2);
+
+  previewSections.push("\n=== 【通用角色列表】 ===");
+  if (sampleCommonChar1) previewSections.push(sampleCommonChar1);
+
+  previewSections.push("\n=== 【通用服装列表】 ===");
+  if (sampleCommonOutfit1) previewSections.push(sampleCommonOutfit1);
+
+  container.find("#tpl_live_preview").val(previewSections.join("\n\n"));
 }
 
 function updateInjectionTemplateUI(container) {
@@ -28200,6 +28309,77 @@ function updateInjectionTemplateUI(container) {
 
 function setupInjectionTemplateControls(container) {
   updateInjectionTemplateUI(container);
+
+  container.find(".st-chatu8-var-btn").off("click").on("click", function (e) {
+    e.preventDefault();
+    const targetId = $(this).attr("data-target") || $(this).data("target");
+    const varTag = $(this).attr("data-var") || $(this).data("var");
+    if (!targetId || !varTag) return;
+
+    const $textarea = container.find("#" + targetId);
+    if ($textarea.length === 0) return;
+
+    const el = $textarea[0];
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const val = $textarea.val();
+
+    const newVal = val.substring(0, start) + varTag + val.substring(end);
+    $textarea.val(newVal);
+
+    el.focus();
+    el.selectionStart = el.selectionEnd = start + varTag.length;
+
+    $textarea.trigger("input");
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(varTag).catch(() => {});
+    }
+
+    if (typeof toastr !== "undefined") {
+      toastr.info(`已插入变量 ${varTag}`);
+    }
+  });
+
+  container.find("#injection_template_refresh_preview").off("click").on("click", function () {
+    renderInjectionTemplateLivePreview(container);
+    if (typeof toastr !== "undefined") {
+      toastr.success("全量实时预览已刷新！");
+    }
+  });
+
+  container.find("#injection_template_apply_quick").off("click").on("click", function () {
+    const quickKey = container.find("#injection_template_quick_preset").val();
+    const quickTpls = QUICK_INJECTION_TEMPLATES[quickKey];
+    if (!quickTpls) {
+      if (typeof toastr !== "undefined") toastr.error("未找到对应的快捷模板方案！");
+      return;
+    }
+
+    container.find("#tpl_characterListTemplate").val(quickTpls.characterListTemplate || "");
+    container.find("#tpl_innerOutfitTemplate").val(quickTpls.innerOutfitTemplate || "");
+    container.find("#tpl_commonCharacterListTemplate").val(quickTpls.commonCharacterListTemplate || "");
+    container.find("#tpl_enableOutfitListTemplate").val(quickTpls.enableOutfitListTemplate || "");
+
+    renderInjectionTemplateLivePreview(container);
+
+    const targetSettings = getCharacterSettingsRoot();
+    if (targetSettings) {
+      ensureInjectionTemplatesInit(targetSettings);
+      const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+      targetSettings.injectionTemplates.presets[currentId] = {
+        characterListTemplate: container.find("#tpl_characterListTemplate").val(),
+        innerOutfitTemplate: container.find("#tpl_innerOutfitTemplate").val(),
+        commonCharacterListTemplate: container.find("#tpl_commonCharacterListTemplate").val(),
+        enableOutfitListTemplate: container.find("#tpl_enableOutfitListTemplate").val()
+      };
+      saveSettingsDebounced();
+    }
+
+    if (typeof toastr !== "undefined") {
+      toastr.success("已载入快捷模板并自动同步至当前方案！");
+    }
+  });
 
   container.find("#injection_template_preset_id").off("change").on("change", function () {
     const selectedId = $(this).val();
@@ -28369,6 +28549,7 @@ function refreshCharacterSettings(container) {
   loadCharacterCommonSelector();
   loadBananaCharacterPresetList();
   loadBananaCharacterPreset();
+  updateInjectionTemplateUI(container);
   refreshAllSelectSearch();
   resetSubNavigation(container);
   console.log("[Character] Character settings refreshed");
