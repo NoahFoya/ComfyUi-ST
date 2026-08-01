@@ -27422,112 +27422,15 @@ function checkCharacterCommonList() {
     return;
   }
   const availableCharacters = /* @__PURE__ */ new Set();
-  for (const presetName in settings3.characterPresets) {
-    availableCharacters.add(presetName);
-  }
-  const results = { found: [], notFound: [] };
-  inputCharacters.forEach((char) => {
-    if (availableCharacters.has(char)) {
-      results.found.push(char);
-    } else {
-      results.notFound.push(char);
-    }
-  });
-  let html = '<div style="margin-bottom: 10px;">';
-  html += `<strong>\u603B\u8BA1\uFF1A</strong>${inputCharacters.length} \u4E2A\u89D2\u8272`;
-  html += `<br><strong>\u627E\u5230\uFF1A</strong>${results.found.length} \u4E2A`;
-  html += `<br><strong>\u672A\u627E\u5230\uFF1A</strong>${results.notFound.length} \u4E2A`;
-  html += "</div>";
-  if (results.found.length > 0) {
-    html += '<div style="margin-bottom: 10px;">';
-    html += '<strong style="color: #28a745;">\u2713 \u5DF2\u5B58\u5728\u7684\u89D2\u8272\uFF1A</strong>';
-    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
-    results.found.forEach((char) => {
-      html += `<li>${char}</li>`;
-    });
-    html += "</ul></div>";
-  }
-  if (results.notFound.length > 0) {
-    html += "<div>";
-    html += '<strong style="color: #dc3545;">\u2717 \u672A\u627E\u5230\u7684\u89D2\u8272\uFF1A</strong>';
-    html += '<ul style="margin: 5px 0; padding-left: 20px;">';
-    results.notFound.forEach((char) => {
-      html += `<li>${char}</li>`;
-    });
-    html += "</ul></div>";
-  }
-  contentDiv.innerHTML = html;
-  $(resultDiv).show();
-}
-var init_characterCommon = __esm({
-  "utils/settings/character/characterCommon.js"() {
-    init_config();
-    init_ui_common();
-    init_crypto();
-    init_characterPreset();
-    init_outfitPreset();
-  }
-});
-
-// utils/settings/character/injectionTemplates.js
-
-function getCharacterSettingsRoot() {
-  if (typeof extension_settings28 !== "undefined" && extension_settings28?.[extensionName]) {
-    return extension_settings28[extensionName];
-  }
-  if (typeof extension_settings31 !== "undefined" && extension_settings31?.[extensionName]) {
-    return extension_settings31[extensionName];
-  }
-  if (typeof extension_settings !== "undefined" && extension_settings?.[extensionName]) {
-    return extension_settings[extensionName];
-  }
-  return {};
-}
-
-function getSystemDefaultInjectionTemplates() {
-  return {
-    characterListTemplate: "中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n{outfits}",
-    innerOutfitTemplate: "  中文名称：{nameCN}\n  英文名称：{nameEN}\n  上半身（正面）：{upperBody}\n  上半身（背面）：{upperBodyBack}\n  下半身（正面）：{fullBody}\n  下半身（背面）：{fullBodyBack}",
-    commonCharacterListTemplate: "{nameCN} {nameEN}",
-    enableOutfitListTemplate: "中文名称：{nameCN}\n英文名称：{nameEN}\n上半身（正面）：{upperBody}\n上半身（背面）：{upperBodyBack}\n下半身（正面）：{fullBody}\n下半身（背面）：{fullBodyBack}"
-  };
-}
-
-function getQuickPresetTemplate(key) {
-  const defaults = getSystemDefaultInjectionTemplates();
-  const templates = {
-    default_chinese: defaults,
-    markdown: {
-      characterListTemplate: "- **{nameCN}** ({nameEN})\n  - 特征: {traits}\n  - 外貌: {facial}\n{outfits}",
-      innerOutfitTemplate: "  - 服装 `{nameCN}`: {upperBody}, {fullBody}",
-      commonCharacterListTemplate: "- **{nameCN}** ({nameEN})",
-      enableOutfitListTemplate: "- **{nameCN}**: {upperBody}, {fullBody}"
-    },
-    tags: {
-      characterListTemplate: "{nameEN}, {traits}, {facial}, {upperSFW}, {lowerSFW}",
-      innerOutfitTemplate: "{nameEN}, {upperBody}, {fullBody}",
-      commonCharacterListTemplate: "{nameEN}",
-      enableOutfitListTemplate: "{nameEN}, {upperBody}, {fullBody}"
-    },
-    compact: {
-      characterListTemplate: "[{nameCN}] ({traits}) [{facial}] {outfits}",
-      innerOutfitTemplate: "  ({nameCN}: {upperBody} | {fullBody})",
-      commonCharacterListTemplate: "[{nameCN}]",
-      enableOutfitListTemplate: "({nameCN}: {upperBody} | {fullBody})"
-    }
-  };
-  return templates[key] || null;
-}
-
-function ensureInjectionTemplatesInit(settings3) {
+  for (const presfunction ensureInjectionTemplatesInit(settings3) {
   const targetSettings = settings3 || getCharacterSettingsRoot();
   if (!targetSettings) return;
   if (!targetSettings.injectionTemplates || !targetSettings.injectionTemplates.presets) {
     const fallbackTemplates = {
       presets: {
-        "\u9ED8\u8BA4\u65B9\u6848": getSystemDefaultInjectionTemplates()
+        "默认方案": getSystemDefaultInjectionTemplates()
       },
-      currentPresetId: "\u9ED8\u8BA4\u65B9\u6848"
+      currentPresetId: "默认方案"
     };
     targetSettings.injectionTemplates = JSON.parse(JSON.stringify(fallbackTemplates));
   }
@@ -27537,7 +27440,7 @@ function getActiveInjectionTemplates(settings3) {
   const targetSettings = settings3 || getCharacterSettingsRoot();
   ensureInjectionTemplatesInit(targetSettings);
   const defaults = getSystemDefaultInjectionTemplates();
-  const currentId = targetSettings?.injectionTemplates?.currentPresetId || "\u9ED8\u8BA4\u65B9\u6848";
+  const currentId = targetSettings?.injectionTemplates?.currentPresetId || "默认方案";
   const preset = targetSettings?.injectionTemplates?.presets?.[currentId] || {};
   return {
     characterListTemplate: preset.characterListTemplate || defaults.characterListTemplate,
@@ -27571,9 +27474,7 @@ function setupInjectionTemplatesControls(container) {
   container.find("#injection_template_quick_preset").off("change").on("change", applyQuickPresetTemplate);
   container.find("#injection_template_preview_btn").off("click").on("click", previewInjectionTemplateResult);
 
-  container.find("#template_character_enable_list, #template_character_inner_outfit, #template_common_character_list, #template_enable_outfit_list").off("input change").on("input change", function() {
-    saveCurrentInjectionTemplatesData();
-  });
+  // 移除文本框输入时的自动保存逻辑，改为用户手动确认保存后生效
 
   loadInjectionTemplatesPreset();
 }
@@ -27590,7 +27491,7 @@ function loadInjectionTemplatesPresetList() {
     option.textContent = presetName;
     select.add(option);
   }
-  select.value = settings3.injectionTemplates.currentPresetId || "\u9ED8\u8BA4\u65B9\u6848";
+  select.value = settings3.injectionTemplates.currentPresetId || "默认方案";
 }
 
 function loadInjectionTemplatesPreset() {
@@ -27598,7 +27499,7 @@ function loadInjectionTemplatesPreset() {
   ensureInjectionTemplatesInit(settings3);
   const select = document.getElementById("injection_template_preset_id");
   if (!select) return;
-  const presetId = select.value || "\u9ED8\u8BA4\u65B9\u6848";
+  const presetId = select.value || "默认方案";
   settings3.injectionTemplates.currentPresetId = presetId;
   const preset = settings3.injectionTemplates.presets[presetId] || {};
   const defaults = getSystemDefaultInjectionTemplates();
@@ -27619,7 +27520,7 @@ function loadInjectionTemplatesPreset() {
 function saveCurrentInjectionTemplatesData(presetId) {
   const settings3 = getCharacterSettingsRoot();
   ensureInjectionTemplatesInit(settings3);
-  const targetId = typeof presetId === "string" ? presetId : (settings3.injectionTemplates.currentPresetId || "\u9ED8\u8BA4\u65B9\u6848");
+  const targetId = typeof presetId === "string" ? presetId : (settings3.injectionTemplates.currentPresetId || "默认方案");
 
   const tChar = document.getElementById("template_character_enable_list")?.value || "";
   const tInner = document.getElementById("template_character_inner_outfit")?.value || "";
@@ -27644,34 +27545,34 @@ function updateInjectionTemplatesPreset() {
   const presetId = settings3.injectionTemplates?.currentPresetId;
   if (!presetId) return;
   saveCurrentInjectionTemplatesData(presetId);
-  toastr.success(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${presetId}" \u5DF2\u4FDD\u5B58`);
+  toastr.success(`注入模板方案 "${presetId}" 已保存！`);
 }
 
 function createNewInjectionTemplatesPreset() {
-  stylInput("\u8BF7\u8F93\u5165\u65B0\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u7684\u540D\u79F0").then((result) => {
+  stylInput("请输入新注入模板方案的名称").then((result) => {
     if (result && result.trim() !== "") {
       const settings3 = getCharacterSettingsRoot();
       ensureInjectionTemplatesInit(settings3);
       if (settings3.injectionTemplates.presets[result]) {
-        alert(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${result}" \u5DF2\u5B58\u5728\uFF0C\u8BF7\u4F7F\u7528\u5176\u4ED6\u540D\u79F0\u3002`);
+        alert(`注入模板方案 "${result}" 已存在，请使用其他名称。`);
         return;
       }
       saveCurrentInjectionTemplatesData(result);
       settings3.injectionTemplates.currentPresetId = result;
       loadInjectionTemplatesPresetList();
-      alert(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${result}" \u5DF2\u65B0\u5FA0\u5E76\u4FDD\u5B58\u3002`);
+      alert(`注入模板方案 "${result}" 已新建并保存。`);
     }
   });
 }
 
 function saveInjectionTemplatesPresetAs() {
-  stylInput("\u8BF7\u8F93\u5165\u65B0\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u7684\u540D\u79F0").then((result) => {
+  stylInput("请输入新注入模板方案的名称").then((result) => {
     if (result && result.trim() !== "") {
       const settings3 = getCharacterSettingsRoot();
       saveCurrentInjectionTemplatesData(result);
       settings3.injectionTemplates.currentPresetId = result;
       loadInjectionTemplatesPresetList();
-      alert(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${result}" \u5DF2\u53E6\u5B58\u4E3A\u3002`);
+      alert(`注入模板方案 "${result}" 已另存为新方案。`);
     }
   });
 }
@@ -27680,23 +27581,23 @@ function renameInjectionTemplatesPreset() {
   const settings3 = getCharacterSettingsRoot();
   const currentName = settings3.injectionTemplates?.currentPresetId;
   if (!currentName) return;
-  stylInput("\u8BF7\u8F93\u5165\u65B0\u7684\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u540D\u79F0", currentName).then((newName) => {
+  stylInput("请输入新的注入模板方案名称", currentName).then((newName) => {
     if (newName && newName.trim() !== "" && newName !== currentName) {
       if (settings3.injectionTemplates.presets[newName]) {
-        alert(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${newName}" \u5DF2\u5B58\u5728\uFF1A`);
+        alert(`注入模板方案 "${newName}" 已存在，请选择其他名称。`);
         return;
       }
       settings3.injectionTemplates.presets[newName] = settings3.injectionTemplates.presets[currentName];
       delete settings3.injectionTemplates.presets[currentName];
       settings3.injectionTemplates.currentPresetId = newName;
       loadInjectionTemplatesPresetList();
-      toastr.success(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u5DF2\u90CD\u540D\u4E3A "${newName}"`);
+      toastr.success(`注入模板方案已重命名为 "${newName}"`);
     }
   });
 }
 
 function resetInjectionTemplatesPreset() {
-  if (confirm("\u786E\u5B9A\u91CD\u7F6E\u5F53\u524D\u65B9\u6848\u6A21\u677F\u4E3A\u7CFB\u77EE\u9ED8\u8BA4\u683C\u5F0F\uFF1F")) {
+  if (confirm("确定重置当前方案模板为系统默认格式？")) {
     const defaults = getSystemDefaultInjectionTemplates();
     const tChar = document.getElementById("template_character_enable_list");
     const tInner = document.getElementById("template_character_inner_outfit");
@@ -27709,7 +27610,7 @@ function resetInjectionTemplatesPreset() {
     if (tOutfit) tOutfit.value = defaults.enableOutfitListTemplate;
 
     updateInjectionTemplatesPreset();
-    toastr.info("\u5DF2\u91CD\u7F6E\u4E3A\u7CFB\u77EE\u9ED8\u8BA4\u683C\u5F0F");
+    toastr.info("已重置为系统默认格式并保存");
   }
 }
 
@@ -27718,16 +27619,16 @@ function deleteInjectionTemplatesPreset() {
   const presetId = settings3.injectionTemplates?.currentPresetId;
   if (!presetId) return;
   if (Object.keys(settings3.injectionTemplates.presets).length <= 1) {
-    alert("\u81F3\u5C11\u5F85\u987B\u4FDD\u7559\u4E00\u4E2A\u6CE8\u5165\u6A21\u677F\u65B9\u6848\uFF01");
+    alert("至少需要保留一个注入模板方案！");
     return;
   }
-  if (confirm(`\u786E\u5B9A\u8981\u5220\u9664\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${presetId}" \u4E48\uFF1F`)) {
+  if (confirm(`确定要删除注入模板方案 "${presetId}" 么？`)) {
     delete settings3.injectionTemplates.presets[presetId];
     const remaining = Object.keys(settings3.injectionTemplates.presets);
     settings3.injectionTemplates.currentPresetId = remaining[0];
     loadInjectionTemplatesPresetList();
     loadInjectionTemplatesPreset();
-    toastr.success(`\u5DF2\u5220\u9664\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${presetId}"`);
+    toastr.success(`已删除注入模板方案 "${presetId}"`);
   }
 }
 
@@ -27747,8 +27648,7 @@ function applyQuickPresetTemplate() {
     if (tCommon) tCommon.value = quickData.commonCharacterListTemplate;
     if (tOutfit) tOutfit.value = quickData.enableOutfitListTemplate;
 
-    saveCurrentInjectionTemplatesData();
-    toastr.success("\u5FEB\u901F\u6A21\u677F\u5DF2\u586B\u5145\u5E94\u7528\uFF01");
+    toastr.info("已填充快捷模板内容，请调整后手动点击【保存】按钮生效。");
   }
   select.value = "";
 }
@@ -27785,12 +27685,12 @@ function importInjectionTemplatesPreset() {
           settings3.injectionTemplates.currentPresetId = name;
           loadInjectionTemplatesPresetList();
           loadInjectionTemplatesPreset();
-          toastr.success(`\u65B9\u6848 "${name}" \u5BFC\u5165\u6210\u529F`);
+          toastr.success(`方案 "${name}" 导入成功并加载！`);
         } else {
-          alert("\u65E0\u6548\u7684\u6CE8\u5165\u6A21\u677F JSON \u6587\u4EF6\uFF01");
+          alert("无效的注入模板 JSON 文件！");
         }
       } catch (err) {
-        alert("\u89E3\u6790 JSON \u5931\u8D25\uFF1A" + err.message);
+        alert("解析 JSON 失败：" + err.message);
       }
     };
     reader.readAsText(file);
@@ -27799,11 +27699,15 @@ function importInjectionTemplatesPreset() {
 }
 
 function previewInjectionTemplateResult() {
-  saveCurrentInjectionTemplatesData();
-  const templates = getActiveInjectionTemplates();
+  const templates = {
+    characterListTemplate: document.getElementById("template_character_enable_list")?.value || "",
+    innerOutfitTemplate: document.getElementById("template_character_inner_outfit")?.value || "",
+    commonCharacterListTemplate: document.getElementById("template_common_character_list")?.value || "",
+    enableOutfitListTemplate: document.getElementById("template_enable_outfit_list")?.value || ""
+  };
 
   const mockOutfit = applyInjectionTemplate(templates.innerOutfitTemplate, {
-    nameCN: "示例白衬衫",
+    nameCN: "示例服装(白衬衫)",
     nameEN: "white shirt",
     upperBody: "white_shirt, collared_shirt",
     upperBodyBack: "white_shirt_back",
@@ -27834,26 +27738,18 @@ function previewInjectionTemplateResult() {
   });
 
   const mockEnableOutfit = applyInjectionTemplate(templates.enableOutfitListTemplate, {
-    nameCN: "通用白衬衫",
-    nameEN: "common white shirt",
+    nameCN: "通用服装(百褶裙)",
+    nameEN: "pleated skirt",
     upperBody: "white_shirt",
     upperBodyBack: "white_shirt_back",
-    fullBody: "denim_shorts",
-    fullBodyBack: "denim_shorts_back"
+    fullBody: "pleated_skirt",
+    fullBodyBack: "pleated_skirt_back"
   });
-
-  const realCharText = typeof generateCharacterListText === "function" ? generateCharacterListText() : "";
-  const realOutfitText = typeof generateOutfitEnableListText === "function" ? generateOutfitEnableListText() : "";
-  const realCommonText = typeof generateCommonCharacterListText === "function" ? generateCommonCharacterListText() : "";
-
-  const charResult = (realCharText && !realCharText.includes("暂无")) ? realCharText : `【样例数据效果】\n${mockChar}`;
-  const commonResult = (realCommonText && !realCommonText.includes("暂无")) ? realCommonText : `【样例数据效果】\n${mockCommon}`;
-  const outfitResult = (realOutfitText && !realOutfitText.includes("暂无")) ? realOutfitText : `【样例数据效果】\n${mockEnableOutfit}`;
 
   const previewContent = document.getElementById("injection_template_preview_content");
   const resultDiv = document.getElementById("injection_template_preview_result");
   if (previewContent && resultDiv) {
-    previewContent.textContent = `=== \u3010{{角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${charResult}\n\n=== \u3010{{通用角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${commonResult}\n\n=== \u3010{{通用服装启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${outfitResult}`;
+    previewContent.textContent = `=== 【{{角色启用列表}}】当前编辑预览 ===\n${mockChar}\n\n=== 【{{通用角色启用列表}}】当前编辑预览 ===\n${mockCommon}\n\n=== 【{{通用服装启用列表}}】当前编辑预览 ===\n${mockEnableOutfit}`;
     resultDiv.style.display = "block";
   }
 }
