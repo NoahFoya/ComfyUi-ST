@@ -22180,12 +22180,18 @@ function inspectCharacterListTrigger(triggerText) {
   };
 }
 function generateCharacterListText(triggerText = null) {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = (typeof extension_settings20 !== "undefined" ? extension_settings20 : (typeof extension_settings31 !== "undefined" ? extension_settings31 : extension_settings))[extensionName];
+  if (!settings3) return "\uFF08\u6682\u65E0\u542F\u7528\u7684\u89D2\u8272\uFF09";
   const enablePresetId = settings3.characterEnablePresetId;
   const enablePreset = settings3.characterEnablePresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.characters) || enablePreset.characters.length === 0) {
     return "\uFF08\u6682\u65E0\u542F\u7528\u7684\u89D2\u8272\uFF09";
   }
+
+  const templates = typeof getActiveInjectionTemplates === "function"
+    ? getActiveInjectionTemplates(settings3)
+    : getSystemDefaultInjectionTemplates();
+
   const characterList = [];
   for (const charId of enablePreset.characters) {
     const character = settings3.characterPresets?.[charId];
@@ -22195,142 +22201,118 @@ function generateCharacterListText(triggerText = null) {
         continue;
       }
     }
-    const charInfo = [];
-    if (character.nameCN) {
-      charInfo.push(`\u4E2D\u6587\u540D\u79F0\uFF1A${character.nameCN}`);
-    }
-    if (character.nameEN) {
-      const displayName = character.nameEN.split("|")[0].trim();
-      charInfo.push(`\u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-    }
-    if (character.characterTraits) {
-      charInfo.push(`\u89D2\u8272\u7279\u5F81\uFF1A${character.characterTraits}`);
-    }
-    if (character.facialFeatures) {
-      charInfo.push(`\u4E94\u5B98\u5916\u8C8C\uFF08\u6B63\u9762\uFF09\uFF1A${character.facialFeatures}`);
-    }
-    if (character.facialFeaturesBack) {
-      charInfo.push(`\u4E94\u5B98\u5916\u8C8C\uFF08\u80CC\u9762\uFF09\uFF1A${character.facialFeaturesBack}`);
-    }
-    if (character.upperBodySFW) {
-      charInfo.push(`\u4E0A\u534A\u8EABSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.upperBodySFW}`);
-    }
-    if (character.upperBodySFWBack) {
-      charInfo.push(`\u4E0A\u534A\u8EABSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.upperBodySFWBack}`);
-    }
-    if (character.fullBodySFW) {
-      charInfo.push(`\u4E0B\u534A\u8EABSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.fullBodySFW}`);
-    }
-    if (character.fullBodySFWBack) {
-      charInfo.push(`\u4E0B\u534A\u8EABSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.fullBodySFWBack}`);
-    }
-    if (character.upperBodyNSFW) {
-      charInfo.push(`\u4E0A\u534A\u8EABNSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.upperBodyNSFW}`);
-    }
-    if (character.upperBodyNSFWBack) {
-      charInfo.push(`\u4E0A\u534A\u8EABNSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.upperBodyNSFWBack}`);
-    }
-    if (character.fullBodyNSFW) {
-      charInfo.push(`\u4E0B\u534A\u8EABNSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.fullBodyNSFW}`);
-    }
-    if (character.fullBodyNSFWBack) {
-      charInfo.push(`\u4E0B\u534A\u8EABNSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.fullBodyNSFWBack}`);
-    }
+
+    let outfitsText = "";
     if (Array.isArray(character.outfits) && character.outfits.length > 0) {
-      charInfo.push(`\u670D\u88C5\u5217\u8868\uFF1A`);
+      const outfitList = [];
       for (const outfitId of character.outfits) {
         const outfit = settings3.outfitPresets?.[outfitId];
         if (!outfit) continue;
-        const outfitDetails = [];
-        if (outfit.nameCN) {
-          outfitDetails.push(`
-  \u4E2D\u6587\u540D\u79F0\uFF1A${outfit.nameCN}`);
-        }
-        if (outfit.nameEN) {
-          const displayName = outfit.nameEN.split("|")[0].trim();
-          outfitDetails.push(`  \u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-        }
-        if (outfit.upperBody) {
-          outfitDetails.push(`  \u4E0A\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.upperBody}`);
-        }
-        if (outfit.upperBodyBack) {
-          outfitDetails.push(`  \u4E0A\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.upperBodyBack}`);
-        }
-        if (outfit.fullBody) {
-          outfitDetails.push(`  \u4E0B\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.fullBody}`);
-        }
-        if (outfit.fullBodyBack) {
-          outfitDetails.push(`  \u4E0B\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.fullBodyBack}`);
-        }
-        if (outfitDetails.length > 0) {
-          charInfo.push(outfitDetails.join("\n"));
-        }
+        const outfitData = {
+          nameCN: outfit.nameCN || "",
+          nameEN: outfit.nameEN ? outfit.nameEN.split("|")[0].trim() : "",
+          upperBody: outfit.upperBody || "",
+          upperBodyBack: outfit.upperBodyBack || "",
+          fullBody: outfit.fullBody || "",
+          fullBodyBack: outfit.fullBodyBack || ""
+        };
+        const renderedOutfit = typeof applyInjectionTemplate === "function"
+          ? applyInjectionTemplate(templates.innerOutfitTemplate, outfitData)
+          : `  \u4E2D\u6587\u540D\u79F0\uFF1A${outfitData.nameCN}\n  \u82F1\u6587\u540D\u79F0\uFF1A${outfitData.nameEN}`;
+        if (renderedOutfit.trim()) outfitList.push(renderedOutfit);
       }
+      if (outfitList.length > 0) outfitsText = outfitList.join("\n");
     }
-    if (charInfo.length > 0) {
-      characterList.push(charInfo.join("\n"));
+
+    const charData = {
+      nameCN: character.nameCN || "",
+      nameEN: character.nameEN ? character.nameEN.split("|")[0].trim() : "",
+      traits: character.characterTraits || "",
+      facial: character.facialFeatures || "",
+      facialBack: character.facialFeaturesBack || "",
+      upperSFW: character.upperBodySFW || "",
+      upperSFWBack: character.upperBodySFWBack || "",
+      lowerSFW: character.fullBodySFW || "",
+      lowerSFWBack: character.fullBodySFWBack || "",
+      upperNSFW: character.upperBodyNSFW || "",
+      upperNSFWBack: character.upperBodyNSFWBack || "",
+      lowerNSFW: character.fullBodyNSFW || "",
+      lowerNSFWBack: character.fullBodyNSFWBack || "",
+      outfits: outfitsText
+    };
+
+    const renderedChar = typeof applyInjectionTemplate === "function"
+      ? applyInjectionTemplate(templates.characterListTemplate, charData)
+      : `\u4E2D\u6587\u540D\u79F0\uFF1A${charData.nameCN}\n\u82F1\u6587\u540D\u79F0\uFF1A${charData.nameEN}`;
+
+    if (renderedChar.trim()) {
+      characterList.push(renderedChar);
     }
   }
   return characterList.length > 0 ? characterList.join("\n\n") : "\uFF08\u6682\u65E0\u88AB\u89E6\u53D1\u7684\u89D2\u8272\uFF09";
 }
+
 function generateOutfitEnableListText() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = (typeof extension_settings20 !== "undefined" ? extension_settings20 : (typeof extension_settings31 !== "undefined" ? extension_settings31 : extension_settings))[extensionName];
+  if (!settings3) return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u670D\u88C5";
   const enablePresetId = settings3.outfitEnablePresetId;
   const enablePreset = settings3.outfitEnablePresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.outfits) || enablePreset.outfits.length === 0) {
     return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u670D\u88C5";
   }
+
+  const templates = typeof getActiveInjectionTemplates === "function"
+    ? getActiveInjectionTemplates(settings3)
+    : getSystemDefaultInjectionTemplates();
+
   const outfitList = [];
   for (const outfitId of enablePreset.outfits) {
     const outfit = settings3.outfitPresets?.[outfitId];
     if (!outfit) continue;
-    const outfitInfo = [];
-    if (outfit.nameCN) {
-      outfitInfo.push(`\u4E2D\u6587\u540D\u79F0\uFF1A${outfit.nameCN}`);
-    }
-    if (outfit.nameEN) {
-      const displayName = outfit.nameEN.split("|")[0].trim();
-      outfitInfo.push(`\u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-    }
-    if (outfit.upperBody) {
-      outfitInfo.push(`\u4E0A\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.upperBody}`);
-    }
-    if (outfit.upperBodyBack) {
-      outfitInfo.push(`\u4E0A\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.upperBodyBack}`);
-    }
-    if (outfit.fullBody) {
-      outfitInfo.push(`\u4E0B\u534A\u8EAB\uFF08\u6B63\u9762\uFF09\uFF1A${outfit.fullBody}`);
-    }
-    if (outfit.fullBodyBack) {
-      outfitInfo.push(`\u4E0B\u534A\u8EAB\uFF08\u80CC\u9762\uFF09\uFF1A${outfit.fullBodyBack}`);
-    }
-    if (outfitInfo.length > 0) {
-      outfitList.push(outfitInfo.join("\n"));
+    const outfitData = {
+      nameCN: outfit.nameCN || "",
+      nameEN: outfit.nameEN ? outfit.nameEN.split("|")[0].trim() : "",
+      upperBody: outfit.upperBody || "",
+      upperBodyBack: outfit.upperBodyBack || "",
+      fullBody: outfit.fullBody || "",
+      fullBodyBack: outfit.fullBodyBack || ""
+    };
+    const renderedOutfit = typeof applyInjectionTemplate === "function"
+      ? applyInjectionTemplate(templates.enableOutfitListTemplate, outfitData)
+      : `\u4E2D\u6587\u540D\u79F0\uFF1A${outfitData.nameCN}\n\u82F1\u6587\u540D\u79F0\uFF1A${outfitData.nameEN}`;
+    if (renderedOutfit.trim()) {
+      outfitList.push(renderedOutfit);
     }
   }
   return outfitList.join("\n\n");
 }
+
 function generateCommonCharacterListText() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = (typeof extension_settings20 !== "undefined" ? extension_settings20 : (typeof extension_settings31 !== "undefined" ? extension_settings31 : extension_settings))[extensionName];
+  if (!settings3) return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u89D2\u8272";
   const enablePresetId = settings3.characterCommonPresetId;
   const enablePreset = settings3.characterCommonPresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.characters) || enablePreset.characters.length === 0) {
     return "\u6682\u672A\u914D\u7F6E\u901A\u7528\u89D2\u8272";
   }
+
+  const templates = typeof getActiveInjectionTemplates === "function"
+    ? getActiveInjectionTemplates(settings3)
+    : getSystemDefaultInjectionTemplates();
+
   const characterList = [];
   for (const charId of enablePreset.characters) {
     const character = settings3.characterPresets?.[charId];
     if (!character) continue;
-    const charInfo = [];
-    if (character.nameCN) {
-      charInfo.push(character.nameCN);
-    }
-    if (character.nameEN) {
-      const displayName = character.nameEN.split("|")[0].trim();
-      charInfo.push(displayName);
-    }
-    if (charInfo.length > 0) {
-      characterList.push(charInfo.join(" "));
+    const charData = {
+      nameCN: character.nameCN || "",
+      nameEN: character.nameEN ? character.nameEN.split("|")[0].trim() : ""
+    };
+    const renderedChar = typeof applyInjectionTemplate === "function"
+      ? applyInjectionTemplate(templates.commonCharacterListTemplate, charData)
+      : `${charData.nameCN} ${charData.nameEN}`;
+    if (renderedChar.trim()) {
+      characterList.push(renderedChar);
     }
   }
   return characterList.join("\n");
@@ -27489,6 +27471,19 @@ var init_characterCommon = __esm({
 
 // utils/settings/character/injectionTemplates.js
 
+function getCharacterSettingsRoot() {
+  if (typeof extension_settings28 !== "undefined" && extension_settings28?.[extensionName]) {
+    return extension_settings28[extensionName];
+  }
+  if (typeof extension_settings31 !== "undefined" && extension_settings31?.[extensionName]) {
+    return extension_settings31[extensionName];
+  }
+  if (typeof extension_settings !== "undefined" && extension_settings?.[extensionName]) {
+    return extension_settings[extensionName];
+  }
+  return {};
+}
+
 function getSystemDefaultInjectionTemplates() {
   return {
     characterListTemplate: "中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n{outfits}",
@@ -27525,16 +27520,41 @@ function getQuickPresetTemplate(key) {
 }
 
 function ensureInjectionTemplatesInit(settings3) {
-  if (!settings3) return;
-  if (!settings3.injectionTemplates || !settings3.injectionTemplates.presets) {
+  const targetSettings = settings3 || getCharacterSettingsRoot();
+  if (!targetSettings) return;
+  if (!targetSettings.injectionTemplates || !targetSettings.injectionTemplates.presets) {
     const fallbackTemplates = {
       presets: {
         "\u9ED8\u8BA4\u65B9\u6848": getSystemDefaultInjectionTemplates()
       },
       currentPresetId: "\u9ED8\u8BA4\u65B9\u6848"
     };
-    settings3.injectionTemplates = JSON.parse(JSON.stringify(fallbackTemplates));
+    targetSettings.injectionTemplates = JSON.parse(JSON.stringify(fallbackTemplates));
   }
+}
+
+function getActiveInjectionTemplates(settings3) {
+  const targetSettings = settings3 || getCharacterSettingsRoot();
+  ensureInjectionTemplatesInit(targetSettings);
+  const defaults = getSystemDefaultInjectionTemplates();
+  const currentId = targetSettings?.injectionTemplates?.currentPresetId || "\u9ED8\u8BA4\u65B9\u6848";
+  const preset = targetSettings?.injectionTemplates?.presets?.[currentId] || {};
+  return {
+    characterListTemplate: preset.characterListTemplate || defaults.characterListTemplate,
+    innerOutfitTemplate: preset.innerOutfitTemplate || defaults.innerOutfitTemplate,
+    commonCharacterListTemplate: preset.commonCharacterListTemplate || defaults.commonCharacterListTemplate,
+    enableOutfitListTemplate: preset.enableOutfitListTemplate || defaults.enableOutfitListTemplate
+  };
+}
+
+function applyInjectionTemplate(template, data) {
+  if (!template) return "";
+  let result = template;
+  for (const key in data) {
+    const val = data[key] !== void 0 && data[key] !== null ? data[key] : "";
+    result = result.split(`{${key}}`).join(val);
+  }
+  return result.split("\n").filter(line => !line.match(/^[\s\uFF1A:]*$/)).join("\n");
 }
 
 function setupInjectionTemplatesControls(container) {
@@ -27559,7 +27579,7 @@ function setupInjectionTemplatesControls(container) {
 }
 
 function loadInjectionTemplatesPresetList() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   ensureInjectionTemplatesInit(settings3);
   const select = document.getElementById("injection_template_preset_id");
   if (!select) return;
@@ -27574,7 +27594,7 @@ function loadInjectionTemplatesPresetList() {
 }
 
 function loadInjectionTemplatesPreset() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   ensureInjectionTemplatesInit(settings3);
   const select = document.getElementById("injection_template_preset_id");
   if (!select) return;
@@ -27597,7 +27617,7 @@ function loadInjectionTemplatesPreset() {
 }
 
 function saveCurrentInjectionTemplatesData(presetId) {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   ensureInjectionTemplatesInit(settings3);
   const targetId = typeof presetId === "string" ? presetId : (settings3.injectionTemplates.currentPresetId || "\u9ED8\u8BA4\u65B9\u6848");
 
@@ -27620,7 +27640,7 @@ function saveCurrentInjectionTemplatesData(presetId) {
 }
 
 function updateInjectionTemplatesPreset() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const presetId = settings3.injectionTemplates?.currentPresetId;
   if (!presetId) return;
   saveCurrentInjectionTemplatesData(presetId);
@@ -27630,7 +27650,7 @@ function updateInjectionTemplatesPreset() {
 function createNewInjectionTemplatesPreset() {
   stylInput("\u8BF7\u8F93\u5165\u65B0\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u7684\u540D\u79F0").then((result) => {
     if (result && result.trim() !== "") {
-      const settings3 = extension_settings20[extensionName];
+      const settings3 = getCharacterSettingsRoot();
       ensureInjectionTemplatesInit(settings3);
       if (settings3.injectionTemplates.presets[result]) {
         alert(`\u6CE8\u5165\u6A21\u677F\u65B9\u6848 "${result}" \u5DF2\u5B58\u5728\uFF0C\u8BF7\u4F7F\u7528\u5176\u4ED6\u540D\u79F0\u3002`);
@@ -27647,7 +27667,7 @@ function createNewInjectionTemplatesPreset() {
 function saveInjectionTemplatesPresetAs() {
   stylInput("\u8BF7\u8F93\u5165\u65B0\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u7684\u540D\u79F0").then((result) => {
     if (result && result.trim() !== "") {
-      const settings3 = extension_settings20[extensionName];
+      const settings3 = getCharacterSettingsRoot();
       saveCurrentInjectionTemplatesData(result);
       settings3.injectionTemplates.currentPresetId = result;
       loadInjectionTemplatesPresetList();
@@ -27657,7 +27677,7 @@ function saveInjectionTemplatesPresetAs() {
 }
 
 function renameInjectionTemplatesPreset() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const currentName = settings3.injectionTemplates?.currentPresetId;
   if (!currentName) return;
   stylInput("\u8BF7\u8F93\u5165\u65B0\u7684\u6CE8\u5165\u6A21\u677F\u65B9\u6848\u540D\u79F0", currentName).then((newName) => {
@@ -27694,7 +27714,7 @@ function resetInjectionTemplatesPreset() {
 }
 
 function deleteInjectionTemplatesPreset() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const presetId = settings3.injectionTemplates?.currentPresetId;
   if (!presetId) return;
   if (Object.keys(settings3.injectionTemplates.presets).length <= 1) {
@@ -27734,7 +27754,7 @@ function applyQuickPresetTemplate() {
 }
 
 function exportInjectionTemplatesPreset() {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
   const presetId = settings3.injectionTemplates?.currentPresetId;
   if (!presetId || !settings3.injectionTemplates.presets[presetId]) return;
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(settings3.injectionTemplates.presets[presetId], null, 2));
@@ -27758,7 +27778,7 @@ function importInjectionTemplatesPreset() {
       try {
         const imported = JSON.parse(event.target.result);
         if (imported && (imported.characterListTemplate || imported.commonCharacterListTemplate)) {
-          const settings3 = extension_settings20[extensionName];
+          const settings3 = getCharacterSettingsRoot();
           const name = file.name.replace(/\.json$/i, "").replace(/^injection_template_/i, "");
           ensureInjectionTemplatesInit(settings3);
           settings3.injectionTemplates.presets[name] = imported;
@@ -27780,14 +27800,60 @@ function importInjectionTemplatesPreset() {
 
 function previewInjectionTemplateResult() {
   saveCurrentInjectionTemplatesData();
-  const charText = typeof generateCharacterListText === "function" ? generateCharacterListText() : "";
-  const outfitText = typeof generateOutfitEnableListText === "function" ? generateOutfitEnableListText() : "";
-  const commonText = typeof generateCommonCharacterListText === "function" ? generateCommonCharacterListText() : "";
+  const templates = getActiveInjectionTemplates();
+
+  const mockOutfit = applyInjectionTemplate(templates.innerOutfitTemplate, {
+    nameCN: "示例白衬衫",
+    nameEN: "white shirt",
+    upperBody: "white_shirt, collared_shirt",
+    upperBodyBack: "white_shirt_back",
+    fullBody: "pleated_skirt",
+    fullBodyBack: "pleated_skirt_back"
+  });
+
+  const mockChar = applyInjectionTemplate(templates.characterListTemplate, {
+    nameCN: "示例角色(爱丽丝)",
+    nameEN: "Alice",
+    traits: "blue_eyes, long_blonde_hair, twin_tails",
+    facial: "smiling, cute_face",
+    facialBack: "back_head_hair",
+    upperSFW: "white_shirt",
+    upperSFWBack: "white_shirt_back",
+    lowerSFW: "blue_skirt",
+    lowerSFWBack: "blue_skirt_back",
+    upperNSFW: "cleavage",
+    upperNSFWBack: "bare_back",
+    lowerNSFW: "panties",
+    lowerNSFWBack: "bare_legs",
+    outfits: mockOutfit
+  });
+
+  const mockCommon = applyInjectionTemplate(templates.commonCharacterListTemplate, {
+    nameCN: "示例角色(爱丽丝)",
+    nameEN: "Alice"
+  });
+
+  const mockEnableOutfit = applyInjectionTemplate(templates.enableOutfitListTemplate, {
+    nameCN: "通用白衬衫",
+    nameEN: "common white shirt",
+    upperBody: "white_shirt",
+    upperBodyBack: "white_shirt_back",
+    fullBody: "denim_shorts",
+    fullBodyBack: "denim_shorts_back"
+  });
+
+  const realCharText = typeof generateCharacterListText === "function" ? generateCharacterListText() : "";
+  const realOutfitText = typeof generateOutfitEnableListText === "function" ? generateOutfitEnableListText() : "";
+  const realCommonText = typeof generateCommonCharacterListText === "function" ? generateCommonCharacterListText() : "";
+
+  const charResult = (realCharText && !realCharText.includes("暂无")) ? realCharText : `【样例数据效果】\n${mockChar}`;
+  const commonResult = (realCommonText && !realCommonText.includes("暂无")) ? realCommonText : `【样例数据效果】\n${mockCommon}`;
+  const outfitResult = (realOutfitText && !realOutfitText.includes("暂无")) ? realOutfitText : `【样例数据效果】\n${mockEnableOutfit}`;
 
   const previewContent = document.getElementById("injection_template_preview_content");
   const resultDiv = document.getElementById("injection_template_preview_result");
   if (previewContent && resultDiv) {
-    previewContent.textContent = `=== \u3010{{角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${charText}\n\n=== \u3010{{通用角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${commonText}\n\n=== \u3010{{通用服装启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${outfitText}`;
+    previewContent.textContent = `=== \u3010{{角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${charResult}\n\n=== \u3010{{通用角色启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${commonResult}\n\n=== \u3010{{通用服装启用列表}}\u3011\u5C55\u5F00\u7EDC\u679C ===\n${outfitResult}`;
     resultDiv.style.display = "block";
   }
 }
