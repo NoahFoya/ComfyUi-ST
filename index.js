@@ -22180,68 +22180,30 @@ function inspectCharacterListTrigger(triggerText) {
   };
 }
 function generateCharacterListText(triggerText = null) {
-  const settings3 = extension_settings20[extensionName];
+  const settings3 = getCharacterSettingsRoot();
+  if (!settings3) return "（暂无启用的角色）";
   const enablePresetId = settings3.characterEnablePresetId;
   const enablePreset = settings3.characterEnablePresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.characters) || enablePreset.characters.length === 0) {
-    return "\uFF08\u6682\u65E0\u542F\u7528\u7684\u89D2\u8272\uFF09";
+    return "（暂无启用的角色）";
   }
+
+  const activeTemplates = getActiveInjectionTemplates(settings3);
   const characterList = [];
+
   for (const charId of enablePreset.characters) {
     const character = settings3.characterPresets?.[charId];
     if (!character) continue;
-    if (triggerText !== null) {
-      if (!isCharacterTriggered(character, triggerText)) {
-        continue;
-      }
+    if (triggerText !== null && typeof isCharacterTriggered === "function" && !isCharacterTriggered(character, triggerText)) {
+      continue;
     }
-    const charInfo = [];
-    if (character.nameCN) {
-      charInfo.push(`\u4E2D\u6587\u540D\u79F0\uFF1A${character.nameCN}`);
-    }
-    if (character.nameEN) {
-      const displayName = character.nameEN.split("|")[0].trim();
-      charInfo.push(`\u82F1\u6587\u540D\u79F0\uFF1A${displayName}`);
-    }
-    if (character.characterTraits) {
-      charInfo.push(`\u89D2\u8272\u7279\u5F81\uFF1A${character.characterTraits}`);
-    }
-    if (character.facialFeatures) {
-      charInfo.push(`\u4E94\u5B98\u5916\u8C8C\uFF08\u6B63\u9762\uFF09\uFF1A${character.facialFeatures}`);
-    }
-    if (character.facialFeaturesBack) {
-      charInfo.push(`\u4E94\u5B98\u5916\u8C8C\uFF08\u80CC\u9762\uFF09\uFF1A${character.facialFeaturesBack}`);
-    }
-    if (character.upperBodySFW) {
-      charInfo.push(`\u4E0A\u534A\u8EABSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.upperBodySFW}`);
-    }
-    if (character.upperBodySFWBack) {
-      charInfo.push(`\u4E0A\u534A\u8EABSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.upperBodySFWBack}`);
-    }
-    if (character.fullBodySFW) {
-      charInfo.push(`\u4E0B\u534A\u8EABSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.fullBodySFW}`);
-    }
-    if (character.fullBodySFWBack) {
-      charInfo.push(`\u4E0B\u534A\u8EABSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.fullBodySFWBack}`);
-    }
-    if (character.upperBodyNSFW) {
-      charInfo.push(`\u4E0A\u534A\u8EABNSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.upperBodyNSFW}`);
-    }
-    if (character.upperBodyNSFWBack) {
-      charInfo.push(`\u4E0A\u534A\u8EABNSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.upperBodyNSFWBack}`);
-    }
-    if (character.fullBodyNSFW) {
-      charInfo.push(`\u4E0B\u534A\u8EABNSFW\uFF08\u6B63\u9762\uFF09\uFF1A${character.fullBodyNSFW}`);
-    }
-    if (character.fullBodyNSFWBack) {
-      charInfo.push(`\u4E0B\u534A\u8EABNSFW\uFF08\u80CC\u9762\uFF09\uFF1A${character.fullBodyNSFWBack}`);
-    }
+
+    let outfitText = "";
     if (Array.isArray(character.outfits) && character.outfits.length > 0) {
-      charInfo.push(`\u670D\u88C5\u5217\u8868\uFF1A`);
+      const outfitTexts = [];
       for (const outfitId of character.outfits) {
         const outfit = settings3.outfitPresets?.[outfitId];
         if (!outfit) continue;
-        const outfitDetails = [];
         if (outfit.nameCN) {
           outfitDetails.push(`
   \u4E2D\u6587\u540D\u79F0\uFF1A${outfit.nameCN}`);
@@ -28107,6 +28069,268 @@ var init_selectSearch = __esm({
   }
 });
 
+// utils/settings/character/injectionTemplates.js (全新模块)
+
+function getCharacterSettingsRoot() {
+  if (typeof extension_settings31 !== "undefined" && extension_settings31[extensionName]) {
+    return extension_settings31[extensionName];
+  }
+  if (typeof extension_settings !== "undefined" && extension_settings[extensionName]) {
+    return extension_settings[extensionName];
+  }
+  return null;
+}
+
+function getSystemDefaultInjectionTemplates() {
+  return {
+    characterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}\n{outfit}`,
+    innerOutfitTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
+    commonCharacterListTemplate: `{nameCN} ({nameEN})\n角色特征:\n{traits}\n五官外貌:\n{facial}\n{facialBack}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`,
+    enableOutfitListTemplate: `{outfitName}\nSFW:\n{upperSFW}\n{upperSFWBack}\n{fullSFW}\n{fullSFWBack}\nNSFW:\n{upperNSFW}\n{upperNSFWBack}\n{fullNSFW}\n{fullNSFWBack}`
+  };
+}
+
+function ensureInjectionTemplatesInit(settingsObj) {
+  const target = settingsObj || getCharacterSettingsRoot();
+  if (!target) return;
+  if (!target.injectionTemplates || !target.injectionTemplates.presets) {
+    target.injectionTemplates = {
+      presets: {
+        "默认方案": getSystemDefaultInjectionTemplates()
+      },
+      currentPresetId: "默认方案"
+    };
+  }
+}
+
+function getActiveInjectionTemplates(settingsObj) {
+  const target = settingsObj || getCharacterSettingsRoot();
+  ensureInjectionTemplatesInit(target);
+  const defaults = getSystemDefaultInjectionTemplates();
+  const currentId = target?.injectionTemplates?.currentPresetId || "默认方案";
+  const userPreset = target?.injectionTemplates?.presets?.[currentId] || {};
+  return {
+    characterListTemplate: userPreset.characterListTemplate ?? defaults.characterListTemplate,
+    innerOutfitTemplate: userPreset.innerOutfitTemplate ?? defaults.innerOutfitTemplate,
+    commonCharacterListTemplate: userPreset.commonCharacterListTemplate ?? defaults.commonCharacterListTemplate,
+    enableOutfitListTemplate: userPreset.enableOutfitListTemplate ?? defaults.enableOutfitListTemplate
+  };
+}
+
+function applyInjectionTemplate(templateStr, dataMap) {
+  if (!templateStr || typeof templateStr !== "string") return "";
+
+  let replaced = templateStr;
+  for (const [key, val] of Object.entries(dataMap || {})) {
+    const regex = new RegExp(`\\{${key}\\}`, "g");
+    replaced = replaced.replace(regex, val != null ? String(val) : "");
+  }
+
+  const lines = replaced.split(/\r?\n/);
+  const cleanedLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmedLine = rawLine.trim();
+
+    const rawTemplateLine = (templateStr.split(/\r?\n/)[i] || "");
+    const hadPlaceholder = /\{[a-zA-Z0-9_]+\}/.test(rawTemplateLine);
+
+    if (hadPlaceholder) {
+      const textOnly = trimmedLine.replace(/[\s:：,，\-–—]/g, "");
+      if (!textOnly) {
+        continue;
+      }
+    }
+    cleanedLines.push(rawLine);
+  }
+
+  let result = cleanedLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  result = result.replace(/,\s*$/g, "");
+  return result;
+}
+
+function renderInjectionTemplateLivePreview(container) {
+  const sampleData = {
+    nameCN: "示例角色",
+    nameEN: "SampleChar",
+    traits: "1girl, solo, masterpiece",
+    facial: "blue eyes, long blonde hair",
+    facialBack: "",
+    upperSFW: "white shirt",
+    upperSFWBack: "",
+    fullSFW: "blue skirt",
+    fullSFWBack: "",
+    upperNSFW: "",
+    upperNSFWBack: "",
+    fullNSFW: "",
+    fullNSFWBack: "",
+    outfit: "水手服 (SFW: white shirt, blue skirt)",
+    outfitName: "示例服装"
+  };
+
+  const charTpl = container.find("#tpl_characterListTemplate").val() || "";
+  const previewText = applyInjectionTemplate(charTpl, sampleData);
+  container.find("#tpl_live_preview").val(previewText);
+}
+
+function updateInjectionTemplateUI(container) {
+  const targetSettings = getCharacterSettingsRoot();
+  if (!targetSettings) return;
+  ensureInjectionTemplatesInit(targetSettings);
+
+  const presets = targetSettings.injectionTemplates.presets;
+  const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+
+  const $select = container.find("#injection_template_preset_id");
+  $select.empty();
+  Object.keys(presets).forEach((id) => {
+    $select.append(`<option value="${id}">${id}</option>`);
+  });
+  $select.val(currentId);
+
+  const activeTpls = presets[currentId] || getSystemDefaultInjectionTemplates();
+  container.find("#tpl_characterListTemplate").val(activeTpls.characterListTemplate || "");
+  container.find("#tpl_innerOutfitTemplate").val(activeTpls.innerOutfitTemplate || "");
+  container.find("#tpl_commonCharacterListTemplate").val(activeTpls.commonCharacterListTemplate || "");
+  container.find("#tpl_enableOutfitListTemplate").val(activeTpls.enableOutfitListTemplate || "");
+
+  renderInjectionTemplateLivePreview(container);
+}
+
+function setupInjectionTemplateControls(container) {
+  updateInjectionTemplateUI(container);
+
+  container.find("#injection_template_preset_id").off("change").on("change", function () {
+    const selectedId = $(this).val();
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+    targetSettings.injectionTemplates.currentPresetId = selectedId;
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+  });
+
+  container.find("#tpl_characterListTemplate, #tpl_innerOutfitTemplate, #tpl_commonCharacterListTemplate, #tpl_enableOutfitListTemplate")
+    .off("input").on("input", function () {
+      renderInjectionTemplateLivePreview(container);
+    });
+
+  container.find("#injection_template_update").off("click").on("click", function () {
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+    targetSettings.injectionTemplates.presets[currentId] = {
+      characterListTemplate: container.find("#tpl_characterListTemplate").val(),
+      innerOutfitTemplate: container.find("#tpl_innerOutfitTemplate").val(),
+      commonCharacterListTemplate: container.find("#tpl_commonCharacterListTemplate").val(),
+      enableOutfitListTemplate: container.find("#tpl_enableOutfitListTemplate").val()
+    };
+    saveSettingsDebounced();
+    toastr.success(`方案 "${currentId}" 保存成功！`);
+  });
+
+  container.find("#injection_template_new").off("click").on("click", async function () {
+    const newName = await callGenericPopup("请输入新提示词注入方案名称：", POPUP_TYPE.INPUT, "");
+    if (!newName || !newName.trim()) return;
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const id = newName.trim();
+    if (targetSettings.injectionTemplates.presets[id]) {
+      toastr.error(`方案 "${id}" 已存在！`);
+      return;
+    }
+
+    targetSettings.injectionTemplates.presets[id] = getSystemDefaultInjectionTemplates();
+    targetSettings.injectionTemplates.currentPresetId = id;
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+    toastr.success(`新建方案 "${id}" 成功！`);
+  });
+
+  container.find("#injection_template_save_as").off("click").on("click", async function () {
+    const newName = await callGenericPopup("请输入另存为的新方案名称：", POPUP_TYPE.INPUT, "");
+    if (!newName || !newName.trim()) return;
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const id = newName.trim();
+    targetSettings.injectionTemplates.presets[id] = {
+      characterListTemplate: container.find("#tpl_characterListTemplate").val(),
+      innerOutfitTemplate: container.find("#tpl_innerOutfitTemplate").val(),
+      commonCharacterListTemplate: container.find("#tpl_commonCharacterListTemplate").val(),
+      enableOutfitListTemplate: container.find("#tpl_enableOutfitListTemplate").val()
+    };
+    targetSettings.injectionTemplates.currentPresetId = id;
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+    toastr.success(`另存为方案 "${id}" 成功！`);
+  });
+
+  container.find("#injection_template_rename").off("click").on("click", async function () {
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const oldId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+    if (oldId === "默认方案") {
+      toastr.warning("默认方案不可重命名！");
+      return;
+    }
+
+    const newName = await callGenericPopup(`重命名方案 "${oldId}" 为：`, POPUP_TYPE.INPUT, oldId);
+    if (!newName || !newName.trim() || newName.trim() === oldId) return;
+    const newId = newName.trim();
+
+    targetSettings.injectionTemplates.presets[newId] = targetSettings.injectionTemplates.presets[oldId];
+    delete targetSettings.injectionTemplates.presets[oldId];
+    targetSettings.injectionTemplates.currentPresetId = newId;
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+    toastr.success("方案重命名成功！");
+  });
+
+  container.find("#injection_template_reset").off("click").on("click", async function () {
+    const confirm = await callGenericPopup("确定将当前方案恢复为系统默认模板吗？", POPUP_TYPE.CONFIRM);
+    if (!confirm) return;
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+    targetSettings.injectionTemplates.presets[currentId] = getSystemDefaultInjectionTemplates();
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+    toastr.success(`方案 "${currentId}" 已重置为系统默认！`);
+  });
+
+  container.find("#injection_template_delete").off("click").on("click", async function () {
+    const targetSettings = getCharacterSettingsRoot();
+    if (!targetSettings) return;
+    ensureInjectionTemplatesInit(targetSettings);
+
+    const currentId = targetSettings.injectionTemplates.currentPresetId || "默认方案";
+    if (currentId === "默认方案") {
+      toastr.warning("默认方案不可删除！");
+      return;
+    }
+
+    const confirm = await callGenericPopup(`确定删除方案 "${currentId}" 吗？`, POPUP_TYPE.CONFIRM);
+    if (!confirm) return;
+
+    delete targetSettings.injectionTemplates.presets[currentId];
+    targetSettings.injectionTemplates.currentPresetId = "默认方案";
+    saveSettingsDebounced();
+    updateInjectionTemplateUI(container);
+    toastr.success(`方案 "${currentId}" 已删除！`);
+  });
+}
+
 // utils/settings/character/index.js
 
 function initCharacterSettings(container) {
@@ -28120,6 +28344,7 @@ function initCharacterSettings(container) {
     setupOutfitEnableControls(container);
     setupCharacterCommonControls(container);
     setupBananaCharacterControls(container);
+    setupInjectionTemplateControls(container);
     initTagAutocomplete();
     initAllSelectSearch(container);
     isCharacterInitialized = true;
