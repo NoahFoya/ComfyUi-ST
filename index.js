@@ -28366,13 +28366,19 @@ function setupInjectionTemplateControls(container) {
       $lastActiveTextarea = $(this);
     });
 
-  container.find("#injection_template_insert_var_btn").off("click").on("click", function (e) {
+  container.find(".var-tab-btn").off("click").on("click", function (e) {
     e.preventDefault();
-    const varTag = container.find("#injection_template_var_select").val();
-    if (!varTag) {
-      if (typeof toastr !== "undefined") toastr.warning("请先选择要插入的占位符变量！");
-      return;
-    }
+    container.find(".var-tab-btn").removeClass("primary active");
+    $(this).addClass("primary active");
+    const tab = $(this).data("tab");
+    container.find(".var-panel").hide();
+    container.find(`#var-panel-${tab}`).css("display", "flex");
+  });
+
+  container.find(".st-chatu8-var-btn").off("click").on("click", function (e) {
+    e.preventDefault();
+    const varTag = $(this).data("var") || $(this).attr("data-var");
+    if (!varTag) return;
 
     if (!$lastActiveTextarea || $lastActiveTextarea.length === 0) {
       $lastActiveTextarea = container.find("#tpl_characterListTemplate");
