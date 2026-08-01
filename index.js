@@ -22148,6 +22148,14 @@ function getTriggeredCharacterName(character, triggerText) {
       }
     }
   }
+  if (character.triggers) {
+    const customTriggers = character.triggers.split("|").map((name) => name.trim()).filter((name) => name);
+    for (const name of customTriggers) {
+      if (normalizedTrigger.includes(normalizeTriggerText(name))) {
+        return name;
+      }
+    }
+  }
   return null;
 }
 function inspectCharacterListTrigger(triggerText) {
