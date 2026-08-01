@@ -82185,7 +82185,7 @@ async function loadAllTabsContent(container) {
         }
         return Promise.resolve(aboutContent);
       }
-      return fetch(`${extensionFolderPath}/html/settings/${tabId}.html`).then((res) => {
+      return fetch(`${extensionFolderPath}/html/settings/${tabId}.html?_v=${Date.now()}`).then((res) => {
         if (!res.ok) throw new Error(`Failed to fetch ${tabId}.html`);
         return res.text();
       });
