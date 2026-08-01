@@ -22118,6 +22118,14 @@ function isCharacterTriggered(character, triggerText) {
       }
     }
   }
+  if (character.triggers) {
+    const customTriggers = character.triggers.split("|").map((name) => normalizeTriggerText(name)).filter((name) => name);
+    for (const name of customTriggers) {
+      if (normalizedTrigger.includes(name)) {
+        return true;
+      }
+    }
+  }
   return false;
 }
 function getTriggeredCharacterName(character, triggerText) {
@@ -22392,10 +22400,25 @@ async function getCommonCharacterImages() {
   }
   return collectedImages;
 }
+function getChatTriggerTextForWorldBook() {
+  try {
+    const context = (typeof getContext16 === "function" ? getContext16() : null) || (typeof getContext === "function" ? getContext() : null) || (typeof SillyTavern !== "undefined" ? SillyTavern.getContext() : null);
+    if (!context || !Array.isArray(context.chat) || context.chat.length === 0) {
+      return null;
+    }
+    const recentMsgs = context.chat.slice(-20);
+    const textParts = recentMsgs.map((m) => m.mes || m.text || "").filter(Boolean);
+    return textParts.join("\n");
+  } catch (e) {
+    return null;
+  }
+}
+
 function setupWorldBookEventListener() {
   eventSource11.on(event_types2.WORLDINFO_ENTRIES_LOADED, (data) => {
     const settings3 = extension_settings20[extensionName];
-    const characterListText = generateCharacterListText();
+    const triggerText = getChatTriggerTextForWorldBook();
+    const characterListText = generateCharacterListText(triggerText);
     const outfitEnableListText = generateOutfitEnableListText();
     const commonCharacterListText = generateCommonCharacterListText();
     console.log("[WorldBook] Character list text:", characterListText);
@@ -28179,35 +28202,56 @@ function getActiveInjectionTemplates(settingsObj) {
 function applyInjectionTemplate(templateStr, dataMap) {
   if (!templateStr || typeof templateStr !== "string") return "";
 
-  let replaced = templateStr;
-  for (const [key, val] of Object.entries(dataMap || {})) {
-    const valStr = val != null ? String(val) : "";
-    const regex = new RegExp(`\\{\\{?${key}\\}?\\}`, "g");
-    replaced = replaced.replace(regex, valStr);
-  }
-
-  const lines = replaced.split(/\r?\n/);
-  const cleanedLines = [];
+  const lines = templateStr.split(/\r?\n/);
+  const resultLines = [];
 
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i];
-    const trimmedLine = rawLine.trim();
+    const placeholderMatches = [...rawLine.matchAll(/\{\{?([a-zA-Z0-9_]+)\}?\}/g)];
 
-    const rawTemplateLine = (templateStr.split(/\r?\n/)[i] || "");
-    const hadPlaceholder = /\{\{?[a-zA-Z0-9_]+\}?\}/.test(rawTemplateLine);
-
-    if (hadPlaceholder) {
-      const textOnly = trimmedLine.replace(/[\s:：,，\-–—]/g, "");
-      if (!textOnly) {
+    if (placeholderMatches.length > 0) {
+      let allPlaceholdersNull = true;
+      for (const match of placeholderMatches) {
+        const key = match[1];
+        const val = dataMap?.[key];
+        if (val !== undefined && val !== null && String(val).trim() !== "") {
+          allPlaceholdersNull = false;
+          break;
+        }
+      }
+      if (allPlaceholdersNull) {
         continue;
       }
     }
-    cleanedLines.push(rawLine);
+
+    let replaced = rawLine;
+    if (placeholderMatches.length > 0) {
+      for (const match of placeholderMatches) {
+        const key = match[1];
+        const val = dataMap?.[key];
+        const valStr = (val !== undefined && val !== null && String(val).trim() !== "") ? String(val) : "null";
+        const regex = new RegExp(`\\{\\{?${key}\\}?\\}`, "g");
+        replaced = replaced.replace(regex, valStr);
+      }
+    }
+
+    resultLines.push(replaced);
   }
 
-  let result = cleanedLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-  result = result.replace(/,\s*$/g, "");
-  return result;
+  const cleaned = [];
+  for (let i = 0; i < resultLines.length; i++) {
+    const line = resultLines[i];
+    const nextLine = resultLines[i + 1];
+    const trimmed = line.trim();
+
+    if ((trimmed === "服装列表：" || trimmed === "服装列表:" || trimmed === "[Outfits]" || trimmed === "服装列表" || trimmed === "- 服装列表:") &&
+        (!nextLine || nextLine.startsWith("中文名称：") || nextLine.startsWith("### ") || nextLine.startsWith("<character") || nextLine.startsWith("<common_"))) {
+      continue;
+    }
+    cleaned.push(line);
+  }
+
+  return cleaned.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 function renderInjectionTemplateLivePreview(container) {
