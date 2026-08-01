@@ -27090,6 +27090,14 @@ var init_outfitEnable = __esm({
 });
 
 // utils/settings/character/characterCommon.js
+var init_characterCommon = __esm({
+  "utils/settings/character/characterCommon.js"() {
+    init_config();
+    init_ui_common();
+    init_crypto();
+    init_characterPreset();
+  }
+});
 
 
 function setupCharacterCommonControls(container) {
