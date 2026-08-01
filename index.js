@@ -28116,22 +28116,22 @@ const SYSTEM_PRESET_IDS = ["默认方案", "Tavern XML 格式", "Markdown 极简
 
 const SYSTEM_INJECTION_TEMPLATES = {
   "默认方案": {
-    characterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n服装列表：\n{outfits}`,
+    characterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n负向提示词：{negative}\n服装列表：\n{outfits}`,
     innerOutfitTemplate: `  中文名称：{nameCN}\n  英文名称：{nameEN}\n  上半身（正面）：{upperBody}\n  上半身（背面）：{upperBodyBack}\n  下半身（正面）：{fullBody}\n  下半身（背面）：{fullBodyBack}`,
-    commonCharacterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}`,
+    commonCharacterListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n角色特征：{traits}\n五官外貌（正面）：{facial}\n五官外貌（背面）：{facialBack}\n上半身SFW（正面）：{upperSFW}\n上半身SFW（背面）：{upperSFWBack}\n下半身SFW（正面）：{lowerSFW}\n下半身SFW（背面）：{lowerSFWBack}\n上半身NSFW（正面）：{upperNSFW}\n上半身NSFW（背面）：{upperNSFWBack}\n下半身NSFW（正面）：{lowerNSFW}\n下半身NSFW（背面）：{lowerNSFWBack}\n负向提示词：{negative}`,
     enableOutfitListTemplate: `中文名称：{nameCN}\n英文名称：{nameEN}\n上半身（正面）：{upperBody}\n上半身（背面）：{upperBodyBack}\n下半身（正面）：{fullBody}\n下半身（背面）：{fullBodyBack}`
   },
   "Tavern XML 格式": {
-    characterListTemplate: `<character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>Front: {facial} | Back: {facialBack}</appearance>\n  <body_sfw>Upper: {upperSFW} ({upperSFWBack}) | Lower: {lowerSFW} ({lowerSFWBack})</body_sfw>\n  <body_nsfw>Upper: {upperNSFW} ({upperNSFWBack}) | Lower: {lowerNSFW} ({lowerNSFWBack})</body_nsfw>\n  <outfits>\n{outfits}\n  </outfits>\n</character>`,
-    innerOutfitTemplate: `  <outfit name="{nameCN}" english_name="{nameEN}">\n    <upper>Front: {upperBody} | Back: {upperBodyBack}</upper>\n    <lower>Front: {fullBody} | Back: {fullBodyBack}</lower>\n  </outfit>`,
-    commonCharacterListTemplate: `<common_character name="{nameCN}" english_name="{nameEN}">\n  <traits>{traits}</traits>\n  <appearance>Front: {facial} | Back: {facialBack}</appearance>\n  <body_sfw>Upper: {upperSFW} | Lower: {lowerSFW}</body_sfw>\n</common_character>`,
-    enableOutfitListTemplate: `<common_outfit name="{nameCN}" english_name="{nameEN}">\n  <upper>Front: {upperBody} | Back: {upperBodyBack}</upper>\n  <lower>Front: {fullBody} | Back: {fullBodyBack}</lower>\n</common_outfit>`
+    characterListTemplate: `<character id="{nameEN}" cn="{nameCN}">\n  [Traits] {traits}\n  [Face] Front: {facial} | Back: {facialBack}\n  [Body-SFW] Front: {upperSFW}, {lowerSFW} | Back: {upperSFWBack}, {lowerSFWBack}\n  [Body-NSFW] Front: {upperNSFW}, {lowerNSFW} | Back: {upperNSFWBack}, {lowerNSFWBack}\n  [Negative] {negative}\n  [Outfits]\n{outfits}\n</character>`,
+    innerOutfitTemplate: `  <outfit name="{nameEN}" cn="{nameCN}">\n    [Upper] Front: {upperBody} | Back: {upperBodyBack}\n    [Full] Front: {fullBody} | Back: {fullBodyBack}\n  </outfit>`,
+    commonCharacterListTemplate: `<common_character id="{nameEN}" cn="{nameCN}">\n  [Traits] {traits}\n  [Face] Front: {facial} | Back: {facialBack}\n  [Body-SFW] Front: {upperSFW}, {lowerSFW} | Back: {upperSFWBack}, {lowerSFWBack}\n  [Negative] {negative}\n</common_character>`,
+    enableOutfitListTemplate: `<common_outfit id="{nameEN}" cn="{nameCN}">\n  [Upper] Front: {upperBody} | Back: {upperBodyBack}\n  [Full] Front: {fullBody} | Back: {fullBodyBack}\n</common_outfit>`
   },
   "Markdown 极简卡片": {
-    characterListTemplate: `### 角色：{nameCN} ({nameEN})\n- **特征**: {traits}\n- **面部**: {facial} (背面: {facialBack})\n- **体型SFW**: 上身({upperSFW} / {upperSFWBack}), 下身({lowerSFW} / {lowerSFWBack})\n- **解剖NSFW**: 上身({upperNSFW} / {upperNSFWBack}), 下身({lowerNSFW} / {lowerNSFWBack})\n- **服装**:\n{outfits}`,
-    innerOutfitTemplate: `  * 服装：{nameCN} ({nameEN}) -> 上身: {upperBody} ({upperBodyBack}) | 下身: {fullBody} ({fullBodyBack})`,
-    commonCharacterListTemplate: `### 通用角色：{nameCN} ({nameEN})\n- **特征**: {traits}\n- **面部**: {facial}\n- **体型**: {upperSFW}, {lowerSFW}`,
-    enableOutfitListTemplate: `### 通用服装：{nameCN} ({nameEN})\n- **上身**: {upperBody} ({upperBodyBack})\n- **下身**: {fullBody} ({fullBodyBack})`
+    characterListTemplate: `### 角色：{nameCN} ({nameEN})\n- 特征: {traits}\n- 五官: {facial} | 背面: {facialBack}\n- SFW体型: 上身: {upperSFW} ({upperSFWBack}) | 下身: {lowerSFW} ({lowerSFWBack})\n- NSFW解剖: 上身: {upperNSFW} ({upperNSFWBack}) | 下身: {lowerNSFW} ({lowerNSFWBack})\n- 负面提示词: {negative}\n- 服装列表:\n{outfits}`,
+    innerOutfitTemplate: `  * 服装: {nameCN} ({nameEN})\n    - 上身: {upperBody} | 背面: {upperBodyBack}\n    - 下身: {fullBody} | 背面: {fullBodyBack}`,
+    commonCharacterListTemplate: `### 通用角色：{nameCN} ({nameEN})\n- 特征: {traits}\n- 五官: {facial} | 背面: {facialBack}\n- SFW体型: 上身: {upperSFW} ({upperSFWBack}) | 下身: {lowerSFW} ({lowerSFWBack})\n- 负面提示词: {negative}`,
+    enableOutfitListTemplate: `### 通用服装：{nameCN} ({nameEN})\n- 上身: {upperBody} | 背面: {upperBodyBack}\n- 下身: {fullBody} | 背面: {fullBodyBack}`
   }
 };
 
@@ -28152,7 +28152,8 @@ function ensureInjectionTemplatesInit(settingsObj) {
     target.injectionTemplates.presets = {};
   }
   for (const [id, sysTpl] of Object.entries(SYSTEM_INJECTION_TEMPLATES)) {
-    if (!target.injectionTemplates.presets[id]) {
+    const existing = target.injectionTemplates.presets[id];
+    if (!existing || existing.characterListTemplate?.includes("<character name=") || !existing.characterListTemplate?.includes("负向提示词")) {
       target.injectionTemplates.presets[id] = { ...sysTpl };
     }
   }
