@@ -28578,33 +28578,48 @@ function ensureCharacterSettings() {
   ensureInjectionTemplatesInit(settings3);
 }
 function setupSubNavigation(container) {
-  container.find(".st-chatu8-sub-nav-link").off("click").on("click", function(e) {
+  const $target = container.find("#ch-tab-character").length > 0 ? container.find("#ch-tab-character") : container;
+  $target.find(".st-chatu8-sub-nav-link").off("click").on("click", function(e) {
     e.preventDefault();
     const subTabId = $(this).data("sub-tab");
-    container.find(".st-chatu8-sub-nav-link").removeClass("active");
+    $target.find(".st-chatu8-sub-nav-link").removeClass("active");
     $(this).addClass("active");
-    container.find(".st-chatu8-sub-tab-content").css("display", "none");
-    container.find(`#${subTabId}`).css("display", "block");
+    $target.find(".st-chatu8-sub-tab-content").css("display", "none");
+    $target.find(`#${subTabId}`).css("display", "block");
   });
-  const allSubNavLinks = container.find(".st-chatu8-sub-nav-link");
-  const firstLink = allSubNavLinks.first();
-  if (firstLink.length > 0) {
-    allSubNavLinks.removeClass("active");
-    firstLink.addClass("active");
-    const firstSubTabId = firstLink.data("sub-tab");
-    container.find(".st-chatu8-sub-tab-content").css("display", "none");
-    container.find(`#${firstSubTabId}`).css("display", "block");
+
+  const activeLink = $target.find(".st-chatu8-sub-nav-link.active");
+  if (activeLink.length > 0) {
+    const subTabId = activeLink.data("sub-tab");
+    $target.find(".st-chatu8-sub-tab-content").css("display", "none");
+    $target.find(`#${subTabId}`).css("display", "block");
+  } else {
+    const firstLink = $target.find(".st-chatu8-sub-nav-link").first();
+    if (firstLink.length > 0) {
+      firstLink.addClass("active");
+      const firstSubTabId = firstLink.data("sub-tab");
+      $target.find(".st-chatu8-sub-tab-content").css("display", "none");
+      $target.find(`#${firstSubTabId}`).css("display", "block");
+    }
   }
 }
+
 function resetSubNavigation(container) {
-  const allSubNavLinks = container.find(".st-chatu8-sub-nav-link");
-  const firstLink = allSubNavLinks.first();
-  if (firstLink.length > 0) {
-    allSubNavLinks.removeClass("active");
-    firstLink.addClass("active");
-    const firstSubTabId = firstLink.data("sub-tab");
-    container.find(".st-chatu8-sub-tab-content").css("display", "none");
-    container.find(`#${firstSubTabId}`).css("display", "block");
+  const $target = container.find("#ch-tab-character").length > 0 ? container.find("#ch-tab-character") : container;
+  const activeLink = $target.find(".st-chatu8-sub-nav-link.active");
+  if (activeLink.length > 0) {
+    const activeSubTabId = activeLink.data("sub-tab");
+    $target.find(".st-chatu8-sub-tab-content").css("display", "none");
+    $target.find(`#${activeSubTabId}`).css("display", "block");
+  } else {
+    const firstLink = $target.find(".st-chatu8-sub-nav-link").first();
+    if (firstLink.length > 0) {
+      $target.find(".st-chatu8-sub-nav-link").removeClass("active");
+      firstLink.addClass("active");
+      const firstSubTabId = firstLink.data("sub-tab");
+      $target.find(".st-chatu8-sub-tab-content").css("display", "none");
+      $target.find(`#${firstSubTabId}`).css("display", "block");
+    }
   }
 }
 var isCharacterInitialized;
@@ -82748,7 +82763,7 @@ async function initUI({ check_update: check_update2 }) {
   }
   initPromptReplaceControls(settingsModal);
   setupWorldBookEventListener();
-  initCharacterSettings(settingsModal);
+  initCharacterSettings(settingsModal.find("#st-chatu8-tab-character").length ? settingsModal.find("#st-chatu8-tab-character") : settingsModal);
   initWorkerControls(settingsModal);
   initProfileControls(settingsModal);
   initApiConnectionTests(settingsModal);
