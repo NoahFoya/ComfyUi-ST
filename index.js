@@ -22098,10 +22098,57 @@ function normalizeTriggerText(text) {
   if (!text || typeof text !== "string") return "";
   return text.replace(/[\s\u3000]+/g, "").toLowerCase();
 }
+
+function getChatContextTriggerText() {
+  try {
+    let stContext = null;
+    if (typeof getContext === "function") stContext = getContext();
+    else if (typeof getContext20 === "function") stContext = getContext20();
+    else if (typeof getContext7 === "function") stContext = getContext7();
+
+    const parts = [];
+    if (stContext) {
+      if (stContext.name2) parts.push(stContext.name2);
+      if (stContext.name1) parts.push(stContext.name1);
+      if (Array.isArray(stContext.chat) && stContext.chat.length > 0) {
+        const recentMessages = stContext.chat.slice(-10);
+        for (const msg of recentMessages) {
+          if (msg && msg.mes) {
+            parts.push(msg.mes);
+          }
+        }
+      }
+    }
+    return parts.join("\n");
+  } catch (err) {
+    console.warn("[st-chatu8] Failed to get chat context trigger text:", err);
+    return "";
+  }
+}
+
 function isCharacterTriggered(character, triggerText) {
-  if (!triggerText || !character) return false;
-  const normalizedTrigger = normalizeTriggerText(triggerText);
+  if (!character) return false;
+
+  let effectiveTrigger = triggerText;
+  if (effectiveTrigger === null || effectiveTrigger === undefined) {
+    effectiveTrigger = getChatContextTriggerText();
+  }
+
+  const normalizedTrigger = normalizeTriggerText(effectiveTrigger);
+
+  try {
+    let stContext = typeof getContext === "function" ? getContext() : null;
+    if (stContext && stContext.name2) {
+      const activeCardName = normalizeTriggerText(stContext.name2);
+      if (activeCardName) {
+        if (character.nameCN && (normalizeTriggerText(character.nameCN).includes(activeCardName) || activeCardName.includes(normalizeTriggerText(character.nameCN)))) return true;
+        if (character.nameEN && (normalizeTriggerText(character.nameEN).includes(activeCardName) || activeCardName.includes(normalizeTriggerText(character.nameEN)))) return true;
+      }
+    }
+  } catch (e) {}
+
   if (!normalizedTrigger) return false;
+
   if (character.nameCN) {
     const chineseNames = character.nameCN.split("|").map((name) => normalizeTriggerText(name)).filter((name) => name);
     for (const name of chineseNames) {
@@ -22120,9 +22167,14 @@ function isCharacterTriggered(character, triggerText) {
   }
   return false;
 }
+
 function getTriggeredCharacterName(character, triggerText) {
-  if (!triggerText || !character) return null;
-  const normalizedTrigger = normalizeTriggerText(triggerText);
+  let effectiveTrigger = triggerText;
+  if (!effectiveTrigger) {
+    effectiveTrigger = getChatContextTriggerText();
+  }
+  if (!effectiveTrigger || !character) return null;
+  const normalizedTrigger = normalizeTriggerText(effectiveTrigger);
   if (!normalizedTrigger) return null;
   if (character.nameCN) {
     const chineseNames = character.nameCN.split("|").map((name) => name.trim()).filter((name) => name);
@@ -22142,6 +22194,7 @@ function getTriggeredCharacterName(character, triggerText) {
   }
   return null;
 }
+
 function inspectCharacterListTrigger(triggerText) {
   const settings3 = extension_settings20[extensionName] || {};
   const enablePresetId = settings3.characterEnablePresetId || "";
@@ -22179,25 +22232,32 @@ function inspectCharacterListTrigger(triggerText) {
     missing
   };
 }
+
 function generateCharacterListText(triggerText = null) {
   const settings3 = (typeof extension_settings20 !== "undefined" ? extension_settings20 : (typeof extension_settings31 !== "undefined" ? extension_settings31 : extension_settings))[extensionName];
-  if (!settings3) return "\uFF08\u6682\u65E0\u542F\u7528\u7684\u89D2\u8272\uFF09";
+  if (!settings3) return "（暂无启用的角色）";
   const enablePresetId = settings3.characterEnablePresetId;
   const enablePreset = settings3.characterEnablePresets?.[enablePresetId];
   if (!enablePreset || !Array.isArray(enablePreset.characters) || enablePreset.characters.length === 0) {
-    return "\uFF08\u6682\u65E0\u542F\u7528\u7684\u89D2\u8272\uFF09";
+    return "（暂无启用的角色）";
   }
 
   const templates = typeof getActiveInjectionTemplates === "function"
     ? getActiveInjectionTemplates(settings3)
     : getSystemDefaultInjectionTemplates();
 
+  let effectiveTrigger = triggerText;
+  if (effectiveTrigger === null || effectiveTrigger === undefined) {
+    effectiveTrigger = getChatContextTriggerText();
+  }
+
   const characterList = [];
   for (const charId of enablePreset.characters) {
     const character = settings3.characterPresets?.[charId];
     if (!character) continue;
-    if (triggerText !== null) {
-      if (!isCharacterTriggered(character, triggerText)) {
+
+    if (enablePreset.characters.length > 1) {
+      if (!isCharacterTriggered(character, effectiveTrigger)) {
         continue;
       }
     }
@@ -22218,7 +22278,7 @@ function generateCharacterListText(triggerText = null) {
         };
         const renderedOutfit = typeof applyInjectionTemplate === "function"
           ? applyInjectionTemplate(templates.innerOutfitTemplate, outfitData)
-          : `  \u4E2D\u6587\u540D\u79F0\uFF1A${outfitData.nameCN}\n  \u82F1\u6587\u540D\u79F0\uFF1A${outfitData.nameEN}`;
+          : `  中文名称：${outfitData.nameCN}\n  英文名称：${outfitData.nameEN}`;
         if (renderedOutfit.trim()) outfitList.push(renderedOutfit);
       }
       if (outfitList.length > 0) outfitsText = outfitList.join("\n");
@@ -22243,13 +22303,13 @@ function generateCharacterListText(triggerText = null) {
 
     const renderedChar = typeof applyInjectionTemplate === "function"
       ? applyInjectionTemplate(templates.characterListTemplate, charData)
-      : `\u4E2D\u6587\u540D\u79F0\uFF1A${charData.nameCN}\n\u82F1\u6587\u540D\u79F0\uFF1A${charData.nameEN}`;
+      : `中文名称：${charData.nameCN}\n英文名称：${charData.nameEN}`;
 
     if (renderedChar.trim()) {
       characterList.push(renderedChar);
     }
   }
-  return characterList.length > 0 ? characterList.join("\n\n") : "\uFF08\u6682\u65E0\u88AB\u89E6\u53D1\u7684\u89D2\u8272\uFF09";
+  return characterList.length > 0 ? characterList.join("\n\n") : "（暂无被触发的角色）";
 }
 
 function generateOutfitEnableListText() {
@@ -27421,8 +27481,76 @@ function checkCharacterCommonList() {
     alert("\u8BF7\u5148\u8F93\u5165\u89D2\u8272\u540D\u79F0");
     return;
   }
-  const availableCharacters = /* @__PURE__ */ new Set();
-  for (const presfunction ensureInjectionTemplatesInit(settings3) {
+  for (const presetName in settings3.characterPresets) {
+    availableCharacters.add(presetName);
+  }
+}
+
+function getSystemDefaultInjectionTemplates() {
+  return getQuickPresetTemplate("compact_node");
+}
+
+function getQuickPresetTemplate(key) {
+  const presets = {
+    compact_node: {
+      characterListTemplate: `<character id="{nameEN}" cn="{nameCN}">\n  [Traits] {traits}\n  [Face] Front: {facial} | Back: {facialBack}\n  [Body-SFW] Front: {upperSFW}, {lowerSFW} | Back: {upperSFWBack}, {lowerSFWBack}\n  [Body-NSFW] Front: {upperNSFW}, {lowerNSFW} | Back: {upperNSFWBack}, {lowerNSFWBack}\n  [Outfits]\n{outfits}\n</character>`,
+      innerOutfitTemplate: `  [Outfit: {nameCN} ({nameEN})] Upper: {upperBody} (Back: {upperBodyBack}) | Full/Lower: {fullBody} (Back: {fullBodyBack})`,
+      commonCharacterListTemplate: `<common_character id="{nameEN}" cn="{nameCN}" />`,
+      enableOutfitListTemplate: `<common_outfit id="{nameEN}" cn="{nameCN}">\n  Upper: {upperBody} (Back: {upperBodyBack}) | Full/Lower: {fullBody} (Back: {fullBodyBack})\n</common_outfit>`
+    },
+    default_chinese: {
+      characterListTemplate: `=== 【角色：{nameCN} / {nameEN}】 ===\n中文名称: {nameCN}\n英文名称: {nameEN}\n角色特征: {traits}\n五官外貌: {facial}\n五官外貌背面: {facialBack}\n上半身SFW: {upperSFW}\n上半身SFW背面: {upperSFWBack}\n下半身SFW: {lowerSFW}\n下半身SFW背面: {lowerSFWBack}\n上半身NSFW: {upperNSFW}\n上半身NSFW背面: {upperNSFWBack}\n下半身NSFW: {lowerNSFW}\n下半身NSFW背面: {lowerNSFWBack}\n服装列表:\n{outfits}`,
+      innerOutfitTemplate: `  中文名称: {nameCN}\n  英文名称: {nameEN}\n  上半身: {upperBody}\n  上半身背面: {upperBodyBack}\n  下半身: {fullBody}\n  下半身背面: {fullBodyBack}`,
+      commonCharacterListTemplate: `中文名称: {nameCN}\n英文名称: {nameEN}`,
+      enableOutfitListTemplate: `中文名称: {nameCN}\n英文名称: {nameEN}\n上半身: {upperBody}\n上半身背面: {upperBodyBack}\n下半身: {fullBody}\n下半身背面: {fullBodyBack}`
+    },
+    markdown_compact: {
+      characterListTemplate: `### 👤 {nameCN} ({nameEN})\n- **特征**: {traits}\n- **五官**: [正面] {facial} | [背面] {facialBack}\n- **身体SFW**: [正面] {upperSFW}, {lowerSFW} | [背面] {upperSFWBack}, {lowerSFWBack}\n- **身体NSFW**: [正面] {upperNSFW}, {lowerNSFW} | [背面] {upperNSFWBack}, {lowerNSFWBack}\n- **服装列表**:\n{outfits}`,
+      innerOutfitTemplate: `  - **{nameCN} ({nameEN})**: 上半身: {upperBody} (背: {upperBodyBack}) | 下半身: {fullBody} (背: {fullBodyBack})`,
+      commonCharacterListTemplate: `* **{nameCN} ({nameEN})**`,
+      enableOutfitListTemplate: `* 👗 **{nameCN} ({nameEN})**: 上半身: {upperBody} (背: {upperBodyBack}) | 下半身: {fullBody} (背: {fullBodyBack})`
+    },
+    tags_compact: {
+      characterListTemplate: `[CHARACTER: {nameCN} / {nameEN}] (traits: {traits}) (face: {facial}, back: {facialBack}) (body_sfw: {upperSFW}, {lowerSFW}, back: {upperSFWBack}, {lowerSFWBack}) (body_nsfw: {upperNSFW}, {lowerNSFW}, back: {upperNSFWBack}, {lowerNSFWBack}) {outfits}`,
+      innerOutfitTemplate: `(outfit "{nameCN}": {upperBody}, back: {upperBodyBack}, full: {fullBody}, back: {fullBodyBack})`,
+      commonCharacterListTemplate: `[COMMON_CHAR: {nameCN} / {nameEN}]`,
+      enableOutfitListTemplate: `[COMMON_OUTFIT: {nameCN} / {nameEN}] ({upperBody}, back: {upperBodyBack}, full: {fullBody}, back: {fullBodyBack})`
+    }
+  };
+  return presets[key] || presets.compact_node;
+}
+
+let lastActiveTemplateTextareaId = "template_character_enable_list";
+
+function trackActiveTemplateTextarea(e) {
+  if (e && e.target && e.target.id) {
+    lastActiveTemplateTextareaId = e.target.id;
+  }
+}
+
+function insertVariableToActiveTemplateInput() {
+  const select = document.getElementById("injection_template_var_select");
+  if (!select || !select.value) {
+    toastr.warning("请先在下拉框中选择要插入的变量！");
+    return;
+  }
+  const varText = select.value;
+  const textarea = document.getElementById(lastActiveTemplateTextareaId) || document.getElementById("template_character_enable_list");
+  if (!textarea) return;
+
+  const startPos = textarea.selectionStart ?? textarea.value.length;
+  const endPos = textarea.selectionEnd ?? textarea.value.length;
+  const originalValue = textarea.value;
+
+  textarea.value = originalValue.substring(0, startPos) + varText + originalValue.substring(endPos);
+  textarea.focus();
+  textarea.selectionStart = startPos + varText.length;
+  textarea.selectionEnd = startPos + varText.length;
+
+  toastr.success(`已插入变量 ${varText}`);
+}
+
+function ensureInjectionTemplatesInit(settings3) {
   const targetSettings = settings3 || getCharacterSettingsRoot();
   if (!targetSettings) return;
   if (!targetSettings.injectionTemplates || !targetSettings.injectionTemplates.presets) {
@@ -27474,7 +27602,9 @@ function setupInjectionTemplatesControls(container) {
   container.find("#injection_template_quick_preset").off("change").on("change", applyQuickPresetTemplate);
   container.find("#injection_template_preview_btn").off("click").on("click", previewInjectionTemplateResult);
 
-  // 移除文本框输入时的自动保存逻辑，改为用户手动确认保存后生效
+  // 绑定文本框焦点记忆与快捷变量插入
+  container.find("#template_character_enable_list, #template_character_inner_outfit, #template_common_character_list, #template_enable_outfit_list").off("focus click").on("focus click", trackActiveTemplateTextarea);
+  container.find("#injection_template_insert_var_btn").off("click").on("click", insertVariableToActiveTemplateInput);
 
   loadInjectionTemplatesPreset();
 }
@@ -27718,17 +27848,17 @@ function previewInjectionTemplateResult() {
   const mockChar = applyInjectionTemplate(templates.characterListTemplate, {
     nameCN: "示例角色(爱丽丝)",
     nameEN: "Alice",
-    traits: "blue_eyes, long_blonde_hair, twin_tails",
-    facial: "smiling, cute_face",
-    facialBack: "back_head_hair",
-    upperSFW: "white_shirt",
-    upperSFWBack: "white_shirt_back",
-    lowerSFW: "blue_skirt",
-    lowerSFWBack: "blue_skirt_back",
-    upperNSFW: "cleavage",
-    upperNSFWBack: "bare_back",
-    lowerNSFW: "panties",
-    lowerNSFWBack: "bare_legs",
+    traits: "1girl, solo, anime girl, 18yo",
+    facial: "blue_eyes, long_blonde_hair, twin_tails, smiling",
+    facialBack: "long_blonde_hair_back, back_hair",
+    upperSFW: "fair_skin, medium_breasts, slender_waist",
+    upperSFWBack: "smooth_back, slender_waist_back",
+    lowerSFW: "slender_legs, fair_skin",
+    lowerSFWBack: "shapely_butt, slender_legs_back",
+    upperNSFW: "bare_breasts, pink_nipples",
+    upperNSFWBack: "bare_back, spine_groove",
+    lowerNSFW: "pussy, shaved_pubic_hair",
+    lowerNSFWBack: "bare_buttocks, anus_detail",
     outfits: mockOutfit
   });
 
@@ -56083,6 +56213,18 @@ async function substituteTemplateVariables(content, extraVars = {}) {
   if (result.includes("{{\u7528\u6237\u9700\u6C42}}")) {
     const lastUserText = extraVars.lastUserText ?? "";
     result = result.replace(/\{\{用户需求\}\}/g, lastUserText);
+  }
+  if (result.includes("{{角色启用列表}}")) {
+    const charText = typeof generateCharacterListText === "function" ? generateCharacterListText(extraVars.lastUserText ?? null) : "";
+    result = result.replace(/\{\{角色启用列表\}\}/g, charText || "");
+  }
+  if (result.includes("{{通用服装启用列表}}")) {
+    const outfitText = typeof generateOutfitEnableListText === "function" ? generateOutfitEnableListText() : "";
+    result = result.replace(/\{\{通用服装启用列表\}\}/g, outfitText || "");
+  }
+  if (result.includes("{{通用角色启用列表}}")) {
+    const commonText = typeof generateCommonCharacterListText === "function" ? generateCommonCharacterListText() : "";
+    result = result.replace(/\{\{通用角色启用列表\}\}/g, commonText || "");
   }
   if (result.includes("{{\u622A\u56FE\u4FE1\u606F}}")) {
     const captureInfo = extraVars.captureInfo ?? "";

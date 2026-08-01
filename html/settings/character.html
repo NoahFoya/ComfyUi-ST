@@ -662,11 +662,45 @@
                 <label for="injection_template_quick_preset">快捷模板填充</label>
                 <select id="injection_template_quick_preset" class="st-chatu8-select">
                     <option value="">-- 选择快捷预设格式 --</option>
-                    <option value="default_chinese">标准中文格式</option>
-                    <option value="markdown">Markdown 列表格式</option>
-                    <option value="tags">Danbooru Tag 纯英格式</option>
-                    <option value="compact">紧凑微调格式</option>
+                    <option value="compact_node">高Token效率 - 节点识别格式 (推荐)</option>
+                    <option value="default_chinese">原版带分割线格式 (完整13字段)</option>
+                    <option value="markdown_compact">Markdown 极简卡片格式</option>
+                    <option value="tags_compact">Danbooru Tag 纯英高密格式</option>
                 </select>
+            </div>
+            
+            <div class="st-chatu8-field" style="margin-top: 12px; background: rgba(0, 0, 0, 0.15); padding: 10px; border-radius: 6px;">
+                <label for="injection_template_var_select"><i class="fa-solid fa-code"></i> 快捷插入占位符变量</label>
+                <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 5px;">
+                    <select id="injection_template_var_select" class="st-chatu8-select" style="flex: 1;">
+                        <option value="">-- 选择要插入的变量 --</option>
+                        <optgroup label="角色模板变量">
+                            <option value="{nameCN}">{nameCN} - 角色中文名称</option>
+                            <option value="{nameEN}">{nameEN} - 角色英文标识符</option>
+                            <option value="{traits}">{traits} - 角色特征(Tag/来源/年龄定位)</option>
+                            <option value="{facial}">{facial} - 五官外貌(正面面部特征)</option>
+                            <option value="{facialBack}">{facialBack} - 五官外貌背面(后发/辫子)</option>
+                            <option value="{upperSFW}">{upperSFW} - 上半身SFW(裸体姿态物理特征)</option>
+                            <option value="{upperSFWBack}">{upperSFWBack} - 上半身SFW背面(背部线条)</option>
+                            <option value="{lowerSFW}">{lowerSFW} - 下半身SFW(腿部轮廓比例)</option>
+                            <option value="{lowerSFWBack}">{lowerSFWBack} - 下半身SFW背面(臀部与双腿)</option>
+                            <option value="{upperNSFW}">{upperNSFW} - 上半身NSFW(解剖细节)</option>
+                            <option value="{upperNSFWBack}">{upperNSFWBack} - 上半身NSFW背面(腰窝等解剖)</option>
+                            <option value="{lowerNSFW}">{lowerNSFW} - 下半身NSFW(解剖主标签)</option>
+                            <option value="{lowerNSFWBack}">{lowerNSFWBack} - 下半身NSFW背面(写实解剖)</option>
+                            <option value="{outfits}">{outfits} - 角色内部服装展开点</option>
+                        </optgroup>
+                        <optgroup label="服装模板变量">
+                            <option value="{upperBody}">{upperBody} - 上半身服装款式/领口/材质</option>
+                            <option value="{upperBodyBack}">{upperBodyBack} - 上半身服装背面结构</option>
+                            <option value="{fullBody}">{fullBody} - 下半身服装/鞋袜配饰</option>
+                            <option value="{fullBodyBack}">{fullBodyBack} - 下半身服装背面剪裁</option>
+                        </optgroup>
+                    </select>
+                    <button class="st-chatu8-btn" id="injection_template_insert_var_btn" type="button" style="white-space: nowrap;">
+                        <i class="fa-solid fa-plus-circle"></i> 插入到光标处
+                    </button>
+                </div>
             </div>
         </div>
 
